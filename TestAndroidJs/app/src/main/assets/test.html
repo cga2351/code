@@ -1,0 +1,28 @@
+<body>  
+    <a>js中调用本地方法</a>  
+	<input type="button" value="Say hello"
+    onClick="showAndroidToast('Hello Android!')" />
+	
+    <script>  
+	
+    function showAndroidToast(para){  
+		document.getElementById("helloweb").innerHTML="showAndroidToast called! "+para;
+        myObj.fun1FromAndroid("调用android本地方法fun1FromAndroid(String name)！！");  
+    } 
+	
+    function funFromjs(para){  
+        document.getElementById("helloweb").innerHTML="HelloWebView,i'm from js"+para;  
+    }  
+    var aTag = document.getElementsByTagName('a')[0];  
+    aTag.addEventListener('click', function(){  
+        //调用android本地方法  
+		document.getElementById("helloweb").innerHTML="aTag clicked! ";
+        myObj.fun1FromAndroid("调用android本地方法fun1FromAndroid(String name)！！");  
+        return false;  
+    }, false);  
+    </script>  
+    <p></p>  
+    <div id="helloweb">   
+  
+    </div>  
+</body>  

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#ff00aaaa"
+    android:id="@+id/ll_fragment1">
+
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:text="fragment1"/>
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:textAllCaps="false"
+        android:text="Start Activity"
+        android:id="@+id/btn_start_activity"/>
+
+    <fragment
+        android:id="@+id/fg_fragment3"
+        android:name="com.example.cga2351.test.Fragment3"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"/>
+
+</LinearLayout>
