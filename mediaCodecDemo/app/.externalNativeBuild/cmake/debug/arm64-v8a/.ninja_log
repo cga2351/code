@@ -1,0 +1,7 @@
+# ninja log v5
+8	7326	0	CMakeFiles/dxtx.dir/src/main/jni/bs.cpp.o	28b47bdab73d091c
+4538	8211	0	CMakeFiles/dxtx.dir/src/main/jni/CvxText.cpp.o	903fb83a9a0be9d5
+8212	10304	0	../../../../build/intermediates/cmake/debug/obj/arm64-v8a/libdxtx.so	c7d315995e356c04
+4669	10314	0	CMakeFiles/dxtx.dir/src/main/jni/CvxText.cpp.o	903fb83a9a0be9d5
+28	10321	0	CMakeFiles/dxtx.dir/src/main/jni/bs.cpp.o	28b47bdab73d091c
+10321	12785	0	../../../../build/intermediates/cmake/debug/obj/arm64-v8a/libdxtx.so	c7d315995e356c04

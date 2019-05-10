@@ -1,0 +1,13 @@
+# ninja log v5
+6	4419	0	CMakeFiles/dxtx.dir/src/main/jni/CvxText.cpp.o	13dbd121b5e279a
+1706	5393	0	CMakeFiles/dxtx.dir/src/main/jni/bs.cpp.o	e64dcf50d633c7a6
+5393	7700	0	../../../../build/intermediates/cmake/debug/obj/armeabi-v7a/libdxtx.so	78cf72b6832af5e2
+21	4241	0	CMakeFiles/dxtx.dir/src/main/jni/bs.cpp.o	e64dcf50d633c7a6
+1700	5229	0	CMakeFiles/dxtx.dir/src/main/jni/CvxText.cpp.o	13dbd121b5e279a
+5229	7454	0	../../../../build/intermediates/cmake/debug/obj/armeabi-v7a/libdxtx.so	78cf72b6832af5e2
+24	4528	0	CMakeFiles/dxtx.dir/src/main/jni/bs.cpp.o	e64dcf50d633c7a6
+1712	5377	0	CMakeFiles/dxtx.dir/src/main/jni/CvxText.cpp.o	13dbd121b5e279a
+5377	7789	0	../../../../build/intermediates/cmake/debug/obj/armeabi-v7a/libdxtx.so	78cf72b6832af5e2
+48	4957	0	CMakeFiles/dxtx.dir/src/main/jni/CvxText.cpp.o	13dbd121b5e279a
+1920	6180	0	CMakeFiles/dxtx.dir/src/main/jni/bs.cpp.o	e64dcf50d633c7a6
+6180	9688	0	../../../../build/intermediates/cmake/debug/obj/armeabi-v7a/libdxtx.so	78cf72b6832af5e2
