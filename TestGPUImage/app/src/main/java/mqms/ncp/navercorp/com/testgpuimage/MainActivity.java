@@ -105,13 +105,22 @@ public class MainActivity extends AppCompatActivity {
 //    int previewHeight = 720;
     int previewWidth = 1280;
     int previewHeight = 720;
+
+//    int videoWidth = 640;
+//    int videoHeight = 360;
+//    int videoWidth = 2220;
+//    int videoHeight = 1080;
+    int videoWidth = 1280;
+    int videoHeight = 720;
+
     Point previewSize = null;
     ////////////////////////////////////////////////////////////////////
     GPUImage gpuImage;
     int imageIndex = 0;
-    byte[] previewData = new byte[previewWidth * previewHeight * ImageFormat.getBitsPerPixel(ImageFormat.NV21) / 8];
-//    byte[] previewData = new byte[previewWidth * previewHeight * 3 / 2];
-//    byte[] previewData = null;
+    byte[] previewDataBuf = new byte[previewWidth * previewHeight * ImageFormat.getBitsPerPixel(ImageFormat.NV21) / 8];
+//    byte[] previewDataBuf = new byte[previewWidth * previewHeight * 3 / 2];
+//    byte[] previewDataBuf = new byte[previewWidth * previewHeight * 3 / 2];
+//    byte[] previewDataBuf = null;
 
     private MediaRecorder mediaRecorder = null;
     private boolean recording = false;
@@ -124,7 +133,8 @@ public class MainActivity extends AppCompatActivity {
     private MediaCodec videoEncoder;
     private MediaMuxer videoMuxer;
     private MediaFormat videoFormat;
-    private int videoEncodeColor = MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420SemiPlanar;
+//    private int videoEncodeColor = MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420SemiPlanar;
+    private int videoEncodeColor;
     MediaCodec.BufferInfo frameInfo = new MediaCodec.BufferInfo();
     private long videoCreateTime = 0;
     private int videoTrackIndex = 0;
@@ -347,9 +357,9 @@ public class MainActivity extends AppCompatActivity {
             // start record with mediaCodec
             startRecordWithMediaCodec();
 
-//            byte[] previewData = new byte[previewWidth * previewHeight * ImageFormat.getBitsPerPixel(ImageFormat.NV21) / 8];
-//            byte[] previewData = new byte[previewWidth * previewHeight * 3 / 2];
-            camera.addCallbackBuffer(previewData);;
+//            byte[] previewDataBuf = new byte[previewWidth * previewHeight * ImageFormat.getBitsPerPixel(ImageFormat.NV21) / 8];
+//            byte[] previewDataBuf = new byte[previewWidth * previewHeight * 3 / 2];
+            camera.addCallbackBuffer(previewDataBuf);;
         }
     }
 
@@ -377,18 +387,21 @@ public class MainActivity extends AppCompatActivity {
         outside:
         for (int i = 0; i < capabilities.colorFormats.length; i++) {
             colorFormats.add(capabilities.colorFormats[i]);
+//            Log.d("-mqmsdebug", "colorFormats=" + capabilities.colorFormats[i]);
         }
 //                case MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420PackedPlanar:
 //                case MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420PackedSemiPlanar:
 //                case MediaCodecInfo.CodecCapabilities.COLOR_TI_FormatYUV420PackedSemiPlanar:
 //                case MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface:
-        if (colorFormats.contains(MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420SemiPlanar)) {
-            colorFormat = MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420SemiPlanar;
-        } else if (colorFormats.contains(MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Planar)) {
-            colorFormat = MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Planar;
-        }
 
-//        colorFormat = MediaCodecInfo.CodecCapabilities.COLOR_Format32bitARGB8888;
+//        if (colorFormats.contains(MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420SemiPlanar)) {
+//            colorFormat = MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420SemiPlanar;
+//        } else if (colorFormats.contains(MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Planar)) {
+            colorFormat = MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Planar;
+//        }
+
+//        colorFormat = MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Planar;
+//         colorFormat = MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420SemiPlanar;
 
         Log.d("-mqmsdebug", "find codec support color format ->" + colorFormat);
 //        Log.d("-mqmsdebug", "my width and height:" + width + "*" + height);
@@ -406,19 +419,26 @@ public class MainActivity extends AppCompatActivity {
 
 
         // 摄像头是旋转了90度
-//        MediaFormat format = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, previewWidth, previewHeight);
-        MediaFormat format = MediaFormat.createVideoFormat(mediaFormatType, previewWidth, previewHeight);
-//        MediaFormat format = MediaFormat.createVideoFormat(mediaFormatType, 2220, 1080);
-        format.setInteger(MediaFormat.KEY_BIT_RATE, previewWidth * previewHeight * 8);
-//        format.setFloat(MediaFormat.KEY_FRAME_RATE, achievableFrameRate.getUpper().floatValue());
-        format.setFloat(MediaFormat.KEY_FRAME_RATE, 30);
-        format.setInteger(MediaFormat.KEY_COLOR_FORMAT, colorFormat);
-        format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 1);
-//        format.setInteger(MediaFormat.KEY_ROTATION, 90);
+//        MediaFormat inputMediaFormat = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, previewWidth, previewHeight);
+//        MediaFormat inputMediaFormat = MediaFormat.createVideoFormat(mediaFormatType, previewWidth, previewHeight);
+        MediaFormat inputMediaFormat = MediaFormat.createVideoFormat(mediaFormatType, videoWidth, videoHeight);
+//        MediaFormat inputMediaFormat = MediaFormat.createVideoFormat(mediaFormatType, 2220, 1080);
+//        inputMediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, videoWidth * videoHeight * 8);
+        inputMediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, 6000*1024);
+//        inputMediaFormat.setFloat(MediaFormat.KEY_FRAME_RATE, achievableFrameRate.getUpper().floatValue());
+        inputMediaFormat.setFloat(MediaFormat.KEY_FRAME_RATE, 30);
+        inputMediaFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, colorFormat);
+        inputMediaFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 1);
+//        inputMediaFormat.setInteger(MediaFormat.KEY_ROTATION, 90);
 
-        mediaEncode.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
+        mediaEncode.configure(inputMediaFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
 //        return new Object[]{mediaEncode, colorFormat};
-        return new Object[]{mediaEncode, format};
+
+        Log.d("-mqmsdebug", "mediaEncode.getInputFormat().colorFormat=" + mediaEncode.getInputFormat().getInteger(MediaFormat.KEY_COLOR_FORMAT) +
+//                ", mediaEncode.getOutputFormat().colorFormat=" + mediaEncode.getOutputFormat().getInteger(MediaFormat.KEY_COLOR_FORMAT)  +
+                ", format.colorFormat=" + inputMediaFormat.getInteger(MediaFormat.KEY_COLOR_FORMAT) );
+
+        return new Object[]{mediaEncode, inputMediaFormat};
 
     }
 
@@ -435,11 +455,15 @@ public class MainActivity extends AppCompatActivity {
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
     public void captureImg(byte[] data, int width, int height) {
         Date date = new Date();
-//        NativeUtils.drawText(data, width, height, dateFormat.format(date));
+        byte[] frameData = new byte[videoWidth * videoHeight * 3 / 2];
+        Log.d("-mqmsdebug", "captureImg(), 1");
+        NativeUtils.drawText(data, frameData, width, height, videoWidth, videoHeight, dateFormat.format(date));
+        Log.d("-mqmsdebug", "captureImg(), 2");
         frameInfo.flags = MediaCodec.BUFFER_FLAG_CODEC_CONFIG;
         frameInfo.presentationTimeUs = (date.getTime() - videoCreateTime) * 1000;
 
-        putIn(data, frameInfo);
+//        putIn(data, frameInfo);
+        putIn(frameData, frameInfo);
     }
 
     void putIn(byte[] data, MediaCodec.BufferInfo videoInfo) {
@@ -472,9 +496,9 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
                 MediaFormat outputFormat = videoEncoder.getOutputFormat();
-                outputFormat.setInteger(MediaFormat.KEY_ROTATION, 90);
-                outputFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, videoEncodeColor);
-                Log.d("-mqmsdebug", "videoEncoder find New format " + outputFormat);
+//                outputFormat.setInteger(MediaFormat.KEY_ROTATION, 90);
+//                outputFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, videoEncodeColor);
+//                Log.d("-mqmsdebug", "videoEncoder find New format " + outputFormat);
                 //向合成器添加视频轨
                 videoTrackIndex = videoMuxer.addTrack(outputFormat);
                 videoMuxer.start();
@@ -525,6 +549,9 @@ public class MainActivity extends AppCompatActivity {
 
 
         try {
+            if (new File("/sdcard/mqms/tmp/testRecordVideo/recordByMediaCodec.mp4").exists()) {
+                new File("/sdcard/mqms/tmp/testRecordVideo/recordByMediaCodec.mp4").delete();
+            }
             videoMuxer = new MediaMuxer("/sdcard/mqms/tmp/testRecordVideo/recordByMediaCodec.mp4", MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
             videoMuxer.setOrientationHint(90);
         } catch (IOException e) {
@@ -567,7 +594,9 @@ public class MainActivity extends AppCompatActivity {
         DisplayMetrics displayMetrics = new DisplayMetrics();
         display.getRealMetrics(displayMetrics);
 //        start("/sdcard/mqms/tmp/testRecordSurfaceVideo.mp4");
-        startRecordScreen(previewWidth, previewHeight, displayMetrics.densityDpi, "/sdcard/mqms/tmp/testRecordVideo/recordByMediaRecorder.mp4", System.currentTimeMillis() + 1000);
+//        startRecordScreen(previewWidth, previewHeight, displayMetrics.densityDpi, "/sdcard/mqms/tmp/testRecordVideo/recordByMediaRecorder.mp4", System.currentTimeMillis() + 1000);
+//        startRecordScreen(videoWidth, videoHeight, displayMetrics.densityDpi, "/sdcard/mqms/tmp/testRecordVideo/recordByMediaRecorder.mp4", System.currentTimeMillis() + 1000);
+        startRecordScreen(1920, 1080, displayMetrics.densityDpi, "/sdcard/mqms/tmp/testRecordVideo/recordByMediaRecorder.mp4", System.currentTimeMillis() + 1000);
     }
 
     private void startPreview() {
@@ -806,7 +835,7 @@ public class MainActivity extends AppCompatActivity {
         camera.setPreviewCallbackWithBuffer(new Camera.PreviewCallback() {
             @Override
             public void onPreviewFrame(byte[] data, Camera camera) {
-//                Log.d("-mqmsdebug", "onPreviewFrame(), entry");
+                Log.d("-mqmsdebug", "onPreviewFrame(), entry");
 
 
                 // add water mark

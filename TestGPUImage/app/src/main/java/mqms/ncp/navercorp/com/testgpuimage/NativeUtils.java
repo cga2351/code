@@ -42,7 +42,7 @@ public class NativeUtils {
      * @param h
      * @param text 需要绘制的文字
      */
-    public static native void drawText(byte[] data, int w, int h, String text);
+    public static native void drawText(byte[] data, byte[] frameData, int srcWidth, int srcHeight, int videoWidth, int videoHeight, String text);
 
     /**
      * 释放内存

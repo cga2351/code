@@ -22,6 +22,9 @@ android {
 
         externalNativeBuild {
             cmake {
+                arguments "-DANDROID_STL=c++_static"
+//                arguments "-DANDROID_STL=stlport_static"
+//                arguments "-DANDROID_STL=gnustl_static"
                 cppFlags "-frtti -fexceptions"
                 abiFilters 'armeabi-v7a', 'arm64-v8a'
             }

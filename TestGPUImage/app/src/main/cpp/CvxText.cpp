@@ -4,6 +4,8 @@
 //#include
 #include <locale.h>
 #include <ctype.h>
+#include <opencv/opencv2/core/types_c.h>
+#include <opencv/opencv2/core/core_c.h>
 
 #include "CvxText.h"
 
