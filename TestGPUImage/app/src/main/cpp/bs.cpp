@@ -5,9 +5,10 @@
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv/opencv2/imgproc/types_c.h>
+#include <opencv/opencv2/core/softfloat.hpp>
 #include "CvxText.h"
 #include "opencv2/core/hal/interface.h"
-
+#include "opencv/opencv2/stitching/detail/warpers_inl.hpp"
 
 //I420: YYYYYYYY UU VV    =>YUV420P
 //        YV12: YYYYYYYY VV UU    =>YUV420P
@@ -43,7 +44,24 @@ void printMat(Mat mat) {
 /**
  * 把jstring转宽字符
  */
+
+#include "math.h"
+
+#undef HAVE_CPUFEATURES
+
 wchar_t *jstring2wchars(JNIEnv *env, jstring jstr) {
+    const cv::softfloat aaa;
+    const cv::softdouble bbb;
+    const cv::softdouble ccc;
+    float ddd;
+    bbb.setExp(5);
+    cvRound(aaa);
+    cos(ccc);
+    cv::cubeRoot(ddd);
+//    cv::softdouble eee = bbb * ccc;
+
+
+
     //获取java字符串的长度
     jsize jstr_len = env->GetStringLength(jstr);
     //获取java字符串的jchar指针
