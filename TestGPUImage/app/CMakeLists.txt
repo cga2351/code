@@ -1,6 +1,6 @@
 
 cmake_minimum_required(VERSION 3.4.1)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
 
 include_directories(
         ${PROJECT_SOURCE_DIR}/src/main/cpp/include
@@ -10,7 +10,8 @@ include_directories(
 add_library(dxtx
             SHARED
             src/main/cpp/bs.cpp
-            src/main/cpp/CvxText.cpp)
+#            src/main/cpp/CvxText.cpp
+        )
 
 
 #add_library(opencv SHARED IMPORTED )
@@ -20,15 +21,23 @@ add_library(freetype STATIC IMPORTED)
 set_target_properties(freetype  PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/src/main/jniLibs/${ANDROID_ABI}/libft2.a)
 
 
+# test cpufeatures lib
+#add_library(libndk_compat STATIC IMPORTED )
+#set_target_properties(libndk_compat PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/src/main/jniLibs/${ANDROID_ABI}/libndk_compat.a)
+#
+#add_library(libndk_compat_static STATIC IMPORTED )
+#set_target_properties(libndk_compat_static PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/src/main/jniLibs/${ANDROID_ABI}/libndk_compat_static.a)
+#
+#add_library(libndk_compat_test_static STATIC IMPORTED )
+#set_target_properties(libndk_compat_test_static PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/src/main/jniLibs/${ANDROID_ABI}/libndk_compat_test_static.a)
+#
+#add_library(libndk_compat_test_shared SHARED IMPORTED )
+#set_target_properties(libndk_compat_test_shared PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/src/main/jniLibs/${ANDROID_ABI}/libndk_compat_test_shared.so)
+
+
 # opencv static lib
-add_library(libndk_compat SHARED IMPORTED )
-set_target_properties(libndk_compat PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/src/main/jniLibs/${ANDROID_ABI}/libndk_compat.so)
-
-add_library(libndk_compat_static STATIC IMPORTED )
-set_target_properties(libndk_compat_static PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/src/main/jniLibs/${ANDROID_ABI}/libndk_compat_static.a)
-
-#add_library(libcpufeatures STATIC IMPORTED )
-#set_target_properties(libcpufeatures PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/src/main/jniLibs/${ANDROID_ABI}/libcpufeatures.a)
+add_library(libcpufeatures STATIC IMPORTED )
+set_target_properties(libcpufeatures PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/src/main/jniLibs/${ANDROID_ABI}/libcpufeatures.a)
 
 #add_library(libIlmImf STATIC IMPORTED )
 #set_target_properties(libIlmImf PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/src/main/jniLibs/${ANDROID_ABI}/libIlmImf.a)
@@ -114,7 +123,7 @@ set_target_properties(libtegra_hal PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE
 
 
 target_link_libraries(dxtx
-                        freetype
+
 #        c++_static
         z
 
@@ -122,10 +131,18 @@ target_link_libraries(dxtx
 #        gnustl
 #        opencv
 
-#        opencv static lib
-        libndk_compat
-        libndk_compat_static
-#        libcpufeatures
+# test cpufeatures lib
+#        libndk_compat
+#        libndk_compat_static
+#        libndk_compat_test_static
+#        libndk_compat_test_shared
+
+# opencv static lib
+
+        libopencv_imgproc
+        libcpufeatures
+
+
 #        libIlmImf
 #        liblibjasper
 #        liblibjpeg-turbo
@@ -140,7 +157,7 @@ target_link_libraries(dxtx
 #        libopencv_flann
 #        libopencv_highgui
 #        libopencv_imgcodecs
-        libopencv_imgproc
+
 #        libopencv_ml
 #        libopencv_objdetect
 #        libopencv_photo
@@ -153,4 +170,8 @@ target_link_libraries(dxtx
 #        libquirc
         libtbb
         libtegra_hal
-        log )
+
+#        freetype
+
+        log
+        )

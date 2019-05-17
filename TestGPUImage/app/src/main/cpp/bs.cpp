@@ -1,14 +1,16 @@
 #include <jni.h>
 #include <android/log.h>
-#include <opencv2/imgproc.hpp>
-#include <opencv2/imgcodecs.hpp>
-#include <opencv2/core.hpp>
-#include <opencv2/highgui.hpp>
+#include <opencv/opencv2/core/hal/interface.h>
+#include <opencv/opencv2/core.hpp>
 #include <opencv/opencv2/imgproc/types_c.h>
+#include <opencv/opencv2/imgproc.hpp>
 #include <opencv/opencv2/core/softfloat.hpp>
-#include "CvxText.h"
-#include "opencv2/core/hal/interface.h"
-#include "opencv/opencv2/stitching/detail/warpers_inl.hpp"
+//#include "cpu-features.h"
+#include "pthread.h"
+#include "android/log.h"
+#include "opencv/opencv2/core/mat.hpp"
+#include "opencv/opencv2/core/matx.hpp"
+
 
 //I420: YYYYYYYY UU VV    =>YUV420P
 //        YV12: YYYYYYYY VV UU    =>YUV420P
@@ -16,66 +18,82 @@
 //        NV21: YYYYYYYY VUVU     =>YUV420SP
 using namespace cv;
 
+
 #define TAG "px"
 #define Log(cs, ...) __android_log_print(ANDROID_LOG_DEBUG, TAG, cs, __VA_ARGS__)
 #define Lg(...) __android_log_print(ANDROID_LOG_DEBUG,TAG,__VA_ARGS__)
 
+
+
+static Size size;
+static CvRect rect;
+//cv::ogl::Buffer buffer;
+//cv::cuda::GpuMat gpuMat;
+//Matx matx;
+//MatExpr matExpr;
+Mat aaa;
+
+
+
+#if (0)
 class dxtx {
 public:
     static Size size;
     static CvRect rect;
     static Mat bg;
     static int videoDecodeColor, videoEncodeColor;
-    static CvxText *textEditor;
+//    static CvxText *textEditor;
 };
 
 Size dxtx::size;
-CvRect dxtx::rect;
+//CvRect dxtx::rect;
 Mat dxtx::bg;
 int dxtx::videoDecodeColor = 21, dxtx::videoEncodeColor = 21;
-CvxText *dxtx::textEditor;
+//CvxText *dxtx::textEditor;
 
-void printMat(Mat mat) {
-    Log(" image 图像行数 = %d", mat.rows);
-    Log(" image 图像列数 = %d", mat.cols);
-    Log(" image 图像通道数 = %d", mat.channels());
-}
+
+
+
+//void printMat(Mat mat) {
+//    Log(" image 图像行数 = %d", mat.rows);
+//    Log(" image 图像列数 = %d", mat.cols);
+//    Log(" image 图像通道数 = %d", mat.channels());
+//}
 
 /**
  * 把jstring转宽字符
  */
 
-#include "math.h"
-
-#undef HAVE_CPUFEATURES
-
-wchar_t *jstring2wchars(JNIEnv *env, jstring jstr) {
-    const cv::softfloat aaa;
-    const cv::softdouble bbb;
-    const cv::softdouble ccc;
-    float ddd;
-    bbb.setExp(5);
-    cvRound(aaa);
-    cos(ccc);
-    cv::cubeRoot(ddd);
-//    cv::softdouble eee = bbb * ccc;
 
 
 
-    //获取java字符串的长度
-    jsize jstr_len = env->GetStringLength(jstr);
-    //获取java字符串的jchar指针
-    const jchar *pjstr = env->GetStringChars(jstr, 0);
-
-    wchar_t *ws = new wchar_t[jstr_len + 1];
-    memset(ws, 0, sizeof(wchar_t) * (jstr_len + 1));
-    //转换 以数组的形式把 jchar转换到wchar_t
-    for (int i = 0; i < jstr_len; i++)
-        memcpy(&ws[i], &pjstr[i], 2);
-
-    env->ReleaseStringChars(jstr, pjstr);
-    return ws;
-}
+//wchar_t *jstring2wchars(JNIEnv *env, jstring jstr) {
+//    const cv::softfloat aaa;
+//    const cv::softdouble bbb;
+//    const cv::softdouble ccc;
+//    float ddd;
+//    bbb.setExp(5);
+//    cvRound(aaa);
+//    cos(ccc);
+//    cv::cubeRoot(ddd);
+////    cv::softdouble eee = bbb * ccc;
+//
+//
+//
+//    //获取java字符串的长度
+//    jsize jstr_len = env->GetStringLength(jstr);
+//    //获取java字符串的jchar指针
+//    const jchar *pjstr = env->GetStringChars(jstr, 0);
+//
+//    wchar_t *ws = new wchar_t[jstr_len + 1];
+//    memset(ws, 0, sizeof(wchar_t) * (jstr_len + 1));
+//    //转换 以数组的形式把 jchar转换到wchar_t
+//    for (int i = 0; i < jstr_len; i++)
+//        memcpy(&ws[i], &pjstr[i], 2);
+//
+//    env->ReleaseStringChars(jstr, pjstr);
+//    return ws;
+//}
 
 //测试给一张图片加文字
 extern "C"
@@ -137,7 +155,7 @@ Java_mqms_ncp_navercorp_com_testgpuimage_NativeUtils_drawText(JNIEnv *env, jclas
                                   jint srcHeight, jint videoWidth, jint videoHeight, jstring text_) {
 //    Log("NativeUtils_drawText(), entry, %s, srcWidth=%d, srcHeight=%d, videoWidth=%d, videoHeight=%d", "111", srcWidth, srcHeight, videoWidth, videoHeight);
     jbyte *data = env->GetByteArrayElements(srcData, NULL);
-    const wchar_t *text = jstring2wchars(env, text_);
+//    const wchar_t *text = jstring2wchars(env, text_);
 //    Log("draw text the color used %d,%d",dxtx::videoDecodeColor,dxtx::videoEncodeColor);
     Mat bgrData;
     Mat originData(srcHeight * 3 / 2, srcWidth, CV_8UC1, (uchar *) data);
@@ -343,56 +361,57 @@ Java_mqms_ncp_navercorp_com_testgpuimage_NativeUtils_drawText(JNIEnv *env, jclas
 extern "C"
 JNIEXPORT void JNICALL
 Java_mqms_ncp_navercorp_com_testgpuimage_NativeUtils_fixTextArea(JNIEnv *env, jclass type, jstring text_) {
-    //转为为宽字符,确定文字范围
-    wchar_t *text = jstring2wchars(env, text_);
-    Size size = dxtx::textEditor->getTextSize(text);
-
-    //原始opencv方式确定文字范围
-//    const char* text = env->GetStringUTFChars(text_,0);
-//    int baseline;
-//    Size size = getTextSize(text, CV_FONT_HERSHEY_COMPLEX, 0.6, 1, &baseline);
-
-    Log("text size width ->%d,%d", size.width, size.height);
-    //使用freetype后不可用getTextSize测量宽高
-    // 确定背景区域
-    CvRect rect = cvRect(0, 0, size.width + 10, size.height * 1.5);
-    //生成背景mask层
-    Mat bg(size.height * 1.5, size.width + 10, CV_8UC3, Scalar(0, 0, 0));
-
-    dxtx::size = size;
-    dxtx::rect = rect;
-    dxtx::bg = bg;
+//    //转为为宽字符,确定文字范围
+//    wchar_t *text = jstring2wchars(env, text_);
+//    Size size = dxtx::textEditor->getTextSize(text);
+//
+//    //原始opencv方式确定文字范围
+////    const char* text = env->GetStringUTFChars(text_,0);
+////    int baseline;
+////    Size size = getTextSize(text, CV_FONT_HERSHEY_COMPLEX, 0.6, 1, &baseline);
+//
+//    Log("text size width ->%d,%d", size.width, size.height);
+//    //使用freetype后不可用getTextSize测量宽高
+//    // 确定背景区域
+//    CvRect rect = cvRect(0, 0, size.width + 10, size.height * 1.5);
+//    //生成背景mask层
+//    Mat bg(size.height * 1.5, size.width + 10, CV_8UC3, Scalar(0, 0, 0));
+//
+//    dxtx::size = size;
+//    dxtx::rect = rect;
+//    dxtx::bg = bg;
 
 }
 
 extern "C"
 JNIEXPORT void JNICALL
 Java_mqms_ncp_navercorp_com_testgpuimage_NativeUtils_release(JNIEnv *env, jclass type) {
-    if (&dxtx::bg != NULL) {
-        dxtx::bg.release();
-        dxtx::bg = NULL;
-    }
-    if (dxtx::textEditor != NULL) {
-        dxtx::textEditor->~CvxText();
-    }
+//    if (&dxtx::bg != NULL) {
+//        dxtx::bg.release();
+//        dxtx::bg = NULL;
+//    }
+//    if (dxtx::textEditor != NULL) {
+//        dxtx::textEditor->~CvxText();
+//    }
 }
 
 extern "C"
 JNIEXPORT void JNICALL
 Java_mqms_ncp_navercorp_com_testgpuimage_NativeUtils_fixColorFormat(JNIEnv *env, jclass type, jint decodeColor,
                                         jint encodeColor) {
-    dxtx::videoDecodeColor = decodeColor;
-    dxtx::videoEncodeColor = encodeColor;
+//    dxtx::videoDecodeColor = decodeColor;
+//    dxtx::videoEncodeColor = encodeColor;
 }
 
 extern "C"
 JNIEXPORT void JNICALL
 Java_mqms_ncp_navercorp_com_testgpuimage_NativeUtils_fixFontFile(JNIEnv *env, jclass type, jstring ttfPath_) {
-    const char *ttfPath = env->GetStringUTFChars(ttfPath_, 0);
-    dxtx::textEditor = new CvxText(ttfPath);
-    Scalar textsize(24, 0.5, 0.1, 0);
-    float p = 1.f;
-    dxtx::textEditor->setFont(NULL, &textsize, NULL, &p);
-    env->ReleaseStringUTFChars(ttfPath_, ttfPath);
+//    const char *ttfPath = env->GetStringUTFChars(ttfPath_, 0);
+//    dxtx::textEditor = new CvxText(ttfPath);
+//    Scalar textsize(24, 0.5, 0.1, 0);
+//    float p = 1.f;
+//    dxtx::textEditor->setFont(NULL, &textsize, NULL, &p);
+//    env->ReleaseStringUTFChars(ttfPath_, ttfPath);
 }
 
+#endif
