@@ -17,8 +17,8 @@ add_library(dxtx
 #add_library(opencv SHARED IMPORTED )
 #set_target_properties(opencv PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/src/main/jniLibs/${ANDROID_ABI}/libopencv_java3.so)
 
-add_library(freetype STATIC IMPORTED)
-set_target_properties(freetype  PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/src/main/jniLibs/${ANDROID_ABI}/libft2.a)
+#add_library(freetype STATIC IMPORTED)
+#set_target_properties(freetype  PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/src/main/jniLibs/${ANDROID_ABI}/libft2.a)
 
 
 # test cpufeatures lib
@@ -124,6 +124,11 @@ set_target_properties(libtegra_hal PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE
 
 target_link_libraries(dxtx
 
+        log
+        OpenSLES
+        EGL
+        GLESv2
+
 #        c++_static
         z
 
@@ -138,11 +143,6 @@ target_link_libraries(dxtx
 #        libndk_compat_test_shared
 
 # opencv static lib
-
-        libopencv_imgproc
-        libcpufeatures
-
-
 #        libIlmImf
 #        liblibjasper
 #        liblibjpeg-turbo
@@ -151,6 +151,7 @@ target_link_libraries(dxtx
 #        liblibtiff
 #        liblibwebp
 #        libopencv_calib3d
+        libopencv_imgproc
         libopencv_core
 #        libopencv_dnn
 #        libopencv_features2d
@@ -170,8 +171,7 @@ target_link_libraries(dxtx
 #        libquirc
         libtbb
         libtegra_hal
-
+        libcpufeatures
 #        freetype
 
-        log
         )

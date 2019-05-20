@@ -54,4 +54,7 @@ public class NativeUtils {
      * @param ttfPath
      */
     public static native void fixFontFile(String ttfPath);
+
+    public static native void jni_addWatermark(byte[] camSrcData, byte[] videoFrameData, int srcWidth, int srcHeight, int videoWidth, int videoHeight, String textWatermark, int camColorFormat);
+
 }

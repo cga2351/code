@@ -5,11 +5,13 @@
 #include <opencv/opencv2/imgproc/types_c.h>
 #include <opencv/opencv2/imgproc.hpp>
 #include <opencv/opencv2/core/softfloat.hpp>
+#include <fenv.h>
 //#include "cpu-features.h"
 #include "pthread.h"
 #include "android/log.h"
 #include "opencv/opencv2/core/mat.hpp"
 #include "opencv/opencv2/core/matx.hpp"
+#include "CvxText.h"
 
 
 //I420: YYYYYYYY UU VV    =>YUV420P
@@ -18,38 +20,32 @@
 //        NV21: YYYYYYYY VUVU     =>YUV420SP
 using namespace cv;
 
-
 #define TAG "px"
 #define Log(cs, ...) __android_log_print(ANDROID_LOG_DEBUG, TAG, cs, __VA_ARGS__)
 #define Lg(...) __android_log_print(ANDROID_LOG_DEBUG,TAG,__VA_ARGS__)
 
 
+#define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, "test_gpu_image", __VA_ARGS__)
 
-static Size size;
-static CvRect rect;
-//cv::ogl::Buffer buffer;
-//cv::cuda::GpuMat gpuMat;
-//Matx matx;
-//MatExpr matExpr;
-Mat aaa;
+#define CAMERA_COLOR_VALUE_NV21     0x11
+#define CAMERA_COLOR_VALUE_YV12     0x32315659
 
 
 
-#if (0)
 class dxtx {
 public:
     static Size size;
     static CvRect rect;
     static Mat bg;
     static int videoDecodeColor, videoEncodeColor;
-//    static CvxText *textEditor;
+    static CvxText *textEditor;
 };
 
 Size dxtx::size;
 //CvRect dxtx::rect;
 Mat dxtx::bg;
 int dxtx::videoDecodeColor = 21, dxtx::videoEncodeColor = 21;
-//CvxText *dxtx::textEditor;
+CvxText *dxtx::textEditor;
 
 
 
@@ -95,11 +91,17 @@ int dxtx::videoDecodeColor = 21, dxtx::videoEncodeColor = 21;
 //    return ws;
 //}
 
+
+cv::softdouble aa;
+
+
 //测试给一张图片加文字
 extern "C"
 JNIEXPORT jstring JNICALL
 Java_mqms_ncp_navercorp_com_testgpuimage_NativeUtils_testImg(JNIEnv *env, jclass type, jstring filepath_, jintArray data,
                                  jstring text_) {
+
+
 //    const char *filepath = env->GetStringUTFChars(filepath_, 0);
 
 //    Mat mat = imread(filepath, CV_LOAD_IMAGE_COLOR);
@@ -184,14 +186,38 @@ Java_mqms_ncp_navercorp_com_testgpuimage_NativeUtils_drawText(JNIEnv *env, jclas
 //    Log("NativeUtils_drawText(), entry, %s", "222");
 
 
+
     // add water mark
-    //opencv自带直接绘制文字
+    LOGD("NativeUtils_drawText()");
+//    //#%04d.%05d#
+//    static int count = 0;
+//    count++;
+//    char textWatermark[64] = {0};
+//    sprintf(textWatermark, "#%04d.%05d#", count, count * 100 + count);
+//    std::string text = textWatermark;
+//    int font_face = cv::FONT_HERSHEY_COMPLEX;
+//    double font_scale = 2;
+//    int thickness = 2;
+//    int baseline;
+//    //获取文本框的长宽
+//    cv::Size text_size = cv::getTextSize(text, font_face, font_scale, thickness, &baseline);
+//
+//    //将文本框居中绘制
+//    cv::Point origin;
+//    origin.x = bgrData.cols / 2 - text_size.width / 2;
+//    origin.y = bgrData.rows / 2 + text_size.height / 2;
+//    cv::putText(bgrData, text, origin, font_face, font_scale, cv::Scalar(0, 255, 255), thickness, 8, 0);
+//    LOGD("NativeUtils_drawText(),text=%s, origin.x=%d, origin.y=%d", text.c_str(), origin.x, origin.y);
+
+
+
+//    //opencv自带直接绘制文字
 //    static int count = 0;
 //    count++;
 //    std::string drawText = "draw text count:";
 //    drawText += count;
-
-    // 使用freetype
+//
+////     使用freetype
 //    CvxText texter("/sdcard/mqms/Courier.ttf");
 //    Scalar textSize(24, 0.5, 0.1, 0);
 //    float p = 1.f;
@@ -266,12 +292,12 @@ Java_mqms_ncp_navercorp_com_testgpuimage_NativeUtils_drawText(JNIEnv *env, jclas
     srcHeight = bgrData.rows;
 
     //转换为YV12
-    Log("NativeUtils_drawText(), entry, %s, scaleData.cols=%d, scaleData.rows=%d", "444",  scaleData.cols, scaleData.rows);
+//    Log("NativeUtils_drawText(), entry, %s, scaleData.cols=%d, scaleData.rows=%d", "444",  scaleData.cols, scaleData.rows);
 //    cvtColor(bgrData, bgrData, CV_BGR2YUV_YV12);
 //    cvtColor(bgrData, bgrData, CV_BGR2YUV_I420);
 //    cvtColor(corpData, corpData, CV_BGR2YUV_I420);
     cvtColor(scaleData, scaleData, CV_BGR2YUV_I420);
-    Log("NativeUtils_drawText(), entry, %s, scaleData.cols=%d, scaleData.rows=%d", "555",  scaleData.cols, scaleData.rows);
+//    Log("NativeUtils_drawText(), entry, %s, scaleData.cols=%d, scaleData.rows=%d", "555",  scaleData.cols, scaleData.rows);
 
 
 
@@ -344,7 +370,7 @@ Java_mqms_ncp_navercorp_com_testgpuimage_NativeUtils_drawText(JNIEnv *env, jclas
 //    env->SetByteArrayRegion(frameData, 0, corpData.cols * corpData.rows, (const jbyte *) corpData.data);
 
 
-    Log("NativeUtils_drawText(), entry, %s, frameDataLen=%d, scaleDataLen=%d", "666", env->GetArrayLength(frameData), scaleData.cols * scaleData.rows * 3 / 2);
+//    Log("NativeUtils_drawText(), entry, %s, frameDataLen=%d, scaleDataLen=%d", "666", env->GetArrayLength(frameData), scaleData.cols * scaleData.rows * 3 / 2);
     env->SetByteArrayRegion(frameData, 0, scaleData.cols * scaleData.rows, (const jbyte *) scaleData.data);
 
 //        env->SetByteArrayRegion(frameData, 0, videoWidth * videoHeight, (const jbyte *) scaleData.data);
@@ -414,4 +440,139 @@ Java_mqms_ncp_navercorp_com_testgpuimage_NativeUtils_fixFontFile(JNIEnv *env, jc
 //    env->ReleaseStringUTFChars(ttfPath_, ttfPath);
 }
 
-#endif
+void addWatermark(unsigned char* camSrcData, unsigned char* frameData, int srcWidth, int srcHeight, int videoWidth, int videoHeight, const char* textWatermark, int camColorFormat) {
+
+//    LOGD("-mqmsdebug, NativeUtils_addWatermark(), entry, srcWidth=%d, srcHeight=%d, videoWidth=%d, videoHeight=%d", srcWidth, srcHeight, videoWidth, videoHeight);
+
+    Mat bgrData;
+    Mat originData(srcHeight * 3 / 2, srcWidth, CV_8UC1, camSrcData);
+
+    // convert color from NV21/YV12 of camera to bgr color format
+    int code = 0;
+//    LOGD("-mqmsdebug, NativeUtils_addWatermark(), entry, dxtx::videoDecodeColor=%d, dxtx::videoEncodeColor=%d", dxtx::videoDecodeColor, dxtx::videoEncodeColor);
+    if (CAMERA_COLOR_VALUE_NV21 == camColorFormat) {
+        code = CV_YUV2BGR_NV21;
+    } else if (CAMERA_COLOR_VALUE_YV12 == camColorFormat) {
+        code = CV_YUV2BGR_YV12;
+    }  else {
+        char *error;
+        sprintf(error, "not support video color format:%d", camColorFormat);
+        throw error;
+    }
+    cvtColor(originData, bgrData, code);
+
+//    LOGD("-mqmsdebug, NativeUtils_addWatermark(), entry, %s", "222");
+
+    // add water mark
+    LOGD("NativeUtils_addWatermark()");
+    //#%04d.%05d#
+//    static int count = 0;
+//    count++;
+//    char textWatermark[64] = {0};
+//    sprintf(textWatermark, "#%04d.%05d#", count, count * 100 + count);
+    std::string text = textWatermark;
+    int font_face = cv::FONT_HERSHEY_COMPLEX;
+    double font_scale = 2;
+    int thickness = 2;
+    int baseline;
+    //获取文本框的长宽
+    cv::Size text_size = cv::getTextSize(text, font_face, font_scale, thickness, &baseline);
+
+    //将文本框居中绘制
+    cv::Point origin;
+    origin.x = bgrData.cols / 2 - text_size.width / 2;
+    origin.y = bgrData.rows / 2 + text_size.height / 2;
+    cv::putText(bgrData, text, origin, font_face, font_scale, cv::Scalar(0, 255, 255), thickness, 8, 0);
+    LOGD("NativeUtils_addWatermark(),text=%s, origin.x=%d, origin.y=%d", text.c_str(), origin.x, origin.y);
+
+
+
+    // corp image
+    Mat cropData;
+    float scaleWidth = (float)srcWidth / videoWidth;
+    float scaleHeight = (float)srcHeight / videoHeight;
+    Rect rect(0, 0, 0, 0);
+    bool croppedData = false;
+    if (fabs(scaleWidth - scaleHeight) > 0.00000001f) {
+        // need crop
+        float scale;
+        if (scaleWidth > scaleHeight) {
+            scale = scaleHeight;
+        } else {
+            scale = scaleWidth;
+        }
+        int destWidth = videoWidth * scale;
+        int destHeight = videoHeight * scale;
+        int corpWidth = srcWidth - destWidth;
+        int corpHeight = srcHeight - destHeight;
+
+        rect.x = corpWidth / 2;
+        rect.y = corpHeight / 2;
+        rect.width = destWidth;
+        rect.height = destHeight;
+
+        cropData = bgrData(rect);
+//        LOGD("-mqmsdebug, NativeUtils_addWatermark(),  croppedData, %s, bgrData.cols=%d, bgrData.rows=%d, cropData.cols=%d, cropData.rows=%d", "444",
+//            bgrData.cols, bgrData.rows, cropData.cols, cropData.rows);
+        croppedData = true;
+    }
+
+    // scale image
+    Mat scaleData;
+    if (croppedData) {
+        resize(cropData, scaleData, Size(videoWidth, videoHeight));
+//        LOGD("-mqmsdebug, NativeUtils_addWatermark(),  croppedData, %s, cropData.cols=%d, cropData.rows=%d, scaleData.cols=%d, scaleData.rows=%d", "555",
+//                cropData.cols, cropData.rows, scaleData.cols, scaleData.rows);
+    } else {
+        resize(bgrData, scaleData, Size(videoWidth, videoHeight));
+//        LOGD("-mqmsdebug, NativeUtils_addWatermark(),  not croppedData, %s, bgrData.cols=%d, bgrData.rows=%d, scaleData.cols=%d, scaleData.rows=%d", "666",
+//            bgrData.cols, bgrData.rows, scaleData.cols, scaleData.rows);
+    }
+
+
+//    LOGD("-mqmsdebug, NativeUtils_addWatermark(), entry, 333, scaleData.cols=%d, scaleData.rows=%d, cropData.cols=%d, cropData.rows=%d, srcWidth=%d, srcHeight=%d, originData.cols=%d, originData.rows=%d, bgrData.cols=%d, bgrData.rows=%d",
+//        scaleData.cols, scaleData.rows, cropData.cols, cropData.rows, srcWidth, srcHeight, originData.cols, originData.rows, bgrData.cols, bgrData.rows);
+
+    srcWidth = bgrData.cols;
+    srcHeight = bgrData.rows;
+
+    //转换为I420
+    cvtColor(scaleData, scaleData, CV_BGR2YUV_I420);
+//    LOGD("-mqmsdebug, NativeUtils_addWatermark(), entry, %s, cropData.cols=%d, cropData.rows=%d", "444",  cropData.cols, cropData.rows);
+
+    // original preview data buf
+    memcpy(camSrcData, bgrData.data, (size_t)bgrData.cols * bgrData.rows * 3 / 2);
+
+    // video frame data buf
+    memcpy(frameData, scaleData.data, (size_t)scaleData.cols * scaleData.rows);
+
+//    env->SetByteArrayRegion(camSrcData, 0, srcWidth * srcHeight * 3 / 2, (const jbyte *) bgrData.data);
+//    env->SetByteArrayRegion(frameData, 0, scaleData.cols * scaleData.rows, (const jbyte *) scaleData.data);
+
+//    LOGD("-mqmsdebug, NativeUtils_addWatermark(), entry, %s", "777");
+
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_mqms_ncp_navercorp_com_testgpuimage_NativeUtils_jni_1addWatermark(JNIEnv *env, jclass type,
+                                                                       jbyteArray camSrcData,
+                                                                       jbyteArray videoFrameData,
+                                                                       jint srcWidth,
+                                                                       jint srcHeight,
+                                                                       jint videoWidth,
+                                                                       jint videoHeight,
+                                                                       jstring textWatermark,
+                                                                       jint camColorFormat) {
+    jbyte *_camSrcData = env->GetByteArrayElements(camSrcData, NULL);
+    jbyte *_videoFrameData = env->GetByteArrayElements(videoFrameData, NULL);
+    const char *_textWaterMark = env->GetStringUTFChars(textWatermark, 0);
+
+    addWatermark((unsigned char *) _camSrcData, (unsigned char *) _videoFrameData, srcWidth,
+                 srcHeight, videoWidth, videoHeight, _textWaterMark, camColorFormat);
+
+    env->ReleaseByteArrayElements(camSrcData, _camSrcData, 0);
+    env->ReleaseByteArrayElements(videoFrameData, _videoFrameData, 0);
+    env->ReleaseStringUTFChars(textWatermark, _textWaterMark);
+}
+

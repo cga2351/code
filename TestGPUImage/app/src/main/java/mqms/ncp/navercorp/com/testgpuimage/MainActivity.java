@@ -33,6 +33,7 @@ import android.widget.TextView;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -103,8 +104,8 @@ public class MainActivity extends AppCompatActivity {
     SurfaceHolder surfaceHolder;
 //    int previewWidth = 1280;
 //    int previewHeight = 720;
-    int previewWidth = 1280;
-    int previewHeight = 720;
+    int previewWidth = Constant.previewWidth;
+    int previewHeight = Constant.previewHeight;
 
 //    int videoWidth = 640;
 //    int videoHeight = 360;
@@ -116,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
     Point previewSize = null;
     ////////////////////////////////////////////////////////////////////
     GPUImage gpuImage;
-    int imageIndex = 0;
+//    int imageIndex = 0;
     byte[] previewDataBuf = new byte[previewWidth * previewHeight * ImageFormat.getBitsPerPixel(ImageFormat.NV21) / 8];
 //    byte[] previewDataBuf = new byte[previewWidth * previewHeight * 3 / 2];
 //    byte[] previewDataBuf = new byte[previewWidth * previewHeight * 3 / 2];
@@ -124,7 +125,8 @@ public class MainActivity extends AppCompatActivity {
 
     private MediaRecorder mediaRecorder = null;
     private boolean recording = false;
-    private boolean recordByMediaCodec = false;
+    private boolean recordByMediaCodec = true;
+    private boolean testAgentCode = true;
     private String mediaFormatType = MediaFormat.MIMETYPE_VIDEO_MPEG4;
     private Surface persistentSurface = null;
     ////////////////////////////////////////////////////////////////////
@@ -168,6 +170,7 @@ public class MainActivity extends AppCompatActivity {
                 btn1Click();
                 break;
             case R.id.btn_2:
+                btn2Click();
                 break;
             case R.id.btn_3:
                 break;
@@ -323,16 +326,24 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void btn2Click() {
+        testAgentCode = !testAgentCode;
+    }
+
     private void btn1Click() {
         if (recording || preview) {
             Log.d("-mqmsdebug", "onViewClicked(), stop preview");
 
             if (recordByMediaCodec) {
                 // stop record with media codec
-                stopRecordWithMediaCodec();
+                if (testAgentCode) {
+                    stopRecordWithMediaCodec_WatermarkUtils();
+                } else {
+                    stopRecordWithMediaCodec();
+                }
             } else {
                 // stop
-                stopRecordWithMediaRecorder();
+//                stopRecordWithMediaRecorder();
             }
 
             try {
@@ -351,16 +362,49 @@ public class MainActivity extends AppCompatActivity {
             // start preview
             startPreview();
 
-            // start record
-//            startRecordWithMediaRecorder();
+            if (recordByMediaCodec) {
+                // start record with mediaCodec
+                if (testAgentCode) {
+                    startRecordWithMediaCodec_WatermarkUtils();
+                } else {
+                    startRecordWithMediaCodec();
+                }
+            } else {
+                // start record
+                startRecordWithMediaRecorder();
+            }
 
-            // start record with mediaCodec
-            startRecordWithMediaCodec();
 
 //            byte[] previewDataBuf = new byte[previewWidth * previewHeight * ImageFormat.getBitsPerPixel(ImageFormat.NV21) / 8];
 //            byte[] previewDataBuf = new byte[previewWidth * previewHeight * 3 / 2];
             camera.addCallbackBuffer(previewDataBuf);;
         }
+    }
+
+    private void stopRecordWithMediaCodec_WatermarkUtils() {
+        Logger.debug("-mqmsdebug", "stopRecordWithMediaCodec_WatermarkUtils(), entry");
+        WaterMarkUtils.needPlayVideo = false;
+        WaterMarkUtils.startPlayingVideo = false;
+    }
+
+    private void startRecordWithMediaCodec_WatermarkUtils() {
+        Logger.debug("-mqmsdebug", "startRecordWithMediaCodec_WatermarkUtils(), entry");
+
+        if (new File("/sdcard/mqms/tmp/testRecordVideo/recordByMediaCodec.mp4").exists()) {
+            new File("/sdcard/mqms/tmp/testRecordVideo/recordByMediaCodec.mp4").delete();
+        }
+
+        StartPlayVideoReq startPlayVideoReq = new StartPlayVideoReq();
+        startPlayVideoReq.setAddWaterMarkTimeStamp(System.currentTimeMillis() + 2000);
+        startPlayVideoReq.setDuration(5000L);
+        startPlayVideoReq.setPlayVideoFullPath("");
+        startPlayVideoReq.setRecordVideoFullPath("/sdcard/mqms/tmp/testRecordVideo/recordByMediaCodec.mp4");
+
+        //start add water mark
+        WaterMarkUtils.startAddWatermark(startPlayVideoReq);
+
+        // start record video
+        WaterMarkUtils.startRecordVideo();
     }
 
     public Object[] initEncoder() {
@@ -456,9 +500,9 @@ public class MainActivity extends AppCompatActivity {
     public void captureImg(byte[] data, int width, int height) {
         Date date = new Date();
         byte[] frameData = new byte[videoWidth * videoHeight * 3 / 2];
-        Log.d("-mqmsdebug", "captureImg(), 1");
+//        Log.d("-mqmsdebug", "captureImg(), 1");
         NativeUtils.drawText(data, frameData, width, height, videoWidth, videoHeight, dateFormat.format(date));
-        Log.d("-mqmsdebug", "captureImg(), 2");
+//        Log.d("-mqmsdebug", "captureImg(), 2");
         frameInfo.flags = MediaCodec.BUFFER_FLAG_CODEC_CONFIG;
         frameInfo.presentationTimeUs = (date.getTime() - videoCreateTime) * 1000;
 
@@ -512,9 +556,9 @@ public class MainActivity extends AppCompatActivity {
                     outputBuffer = videoEncoder.getOutputBuffer(outputIndex);//拿到输出Buffer
 
                     long curTime = System.currentTimeMillis();
-                    Log.d("-mqmsdebug", "encode(), write a video sample" +
-                            ", frame time:" + (bufferInfo.presentationTimeUs / 1000) +
-                            ", frame write time:" + (curTime - lastFrameWriteTime));
+//                    Log.d("-mqmsdebug", "encode(), write a video sample" +
+//                            ", frame time:" + (bufferInfo.presentationTimeUs / 1000) +
+//                            ", frame write time:" + (curTime - lastFrameWriteTime));
                     lastFrameTime = bufferInfo.presentationTimeUs;
                     lastFrameWriteTime = curTime;
 
@@ -543,7 +587,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void startRecordWithMediaCodec() {
 
-        recordByMediaCodec = true;
         initTextDrawProp();
         initMediaEncode();
 
@@ -835,27 +878,97 @@ public class MainActivity extends AppCompatActivity {
         camera.setPreviewCallbackWithBuffer(new Camera.PreviewCallback() {
             @Override
             public void onPreviewFrame(byte[] data, Camera camera) {
-                Log.d("-mqmsdebug", "onPreviewFrame(), entry");
+
+                if (testAgentCode) {
+                    long currentFrameTime = System.currentTimeMillis();
+//                    Logger.debug("-mqmsdebug", "WaterMarkUtils.needPlayVideo=" + WaterMarkUtils.needPlayVideo + ", WaterMarkUtils.startPlayingVideo=" + WaterMarkUtils.startPlayingVideo);
+                    if (WaterMarkUtils.needPlayVideo && !WaterMarkUtils.startPlayingVideo) {
+                        // check if need start playing video
+                        if (currentFrameTime >= WaterMarkUtils.waterMarkStartTimeStamp) {
+                            Logger.debug("-mqmsdebug", "Camera$EventHandler handleMessage(), start add watermark");
+                            WaterMarkUtils.startPlayingVideo = true;
+                            WaterMarkUtils.firstFrameTime = currentFrameTime;
+//                        NativeHookInterface.native_setFrameNumber(0);
+                            WaterMarkUtils.currentFrameNum = 1; //frame number start with 1
+//                        NativeHookInterface.native_setCameraSize(WaterMarkUtils.previewWidth, WaterMarkUtils.previewHeight);
+                            Logger.debug("-mqmsdebug", "Camera$EventHandler handleMessage(), set recording true");
+//                        NativeHookInterface.native_setVideoRecording(true);
+
+//                                    addedWaterMarkPreviewData.clear();
+                        }
+                    }
+
+                    if (WaterMarkUtils.startPlayingVideo) {
+                        Logger.debug("-mqmsdebug", "Camera$EventHandler handleMessage(), add water mark, WaterMarkUtils.currentFrameNum=" + WaterMarkUtils.currentFrameNum);
+//                        WaterMarkUtils.currentFrameNum = NativeHookInterface.native_getFrameNumber();
+                        byte[] previewData = data;
+//                                synchronized (WaterMarkUtils.class) {
+                        long t1 = System.currentTimeMillis();
+
+//                        WaterMarkUtils.machiningFrameData(data, currentFrameTime, WaterMarkUtils.currentFrameNum);
+
+//                        Bitmap bitmap = tvConvertedToBitmap(currentFrameTime, WaterMarkUtils.currentFrameNum);
+//                        if(bitmap != null) {
+//                            byte[] bytesYUV = getYUVByBitmap(bitmap);
+//                            combine(data, bytesYUV);
+//                        }
 
 
-                // add water mark
-                Bitmap bitmap = tvConvertedToBitmap(System.currentTimeMillis(), imageIndex);
-                if(bitmap != null) {
-                    byte[] bytesYUV = getYUVByBitmap(bitmap);
-                    combine(data, bytesYUV);
-                }
 
-                // set data to gpu image to display
+//                    Logger.debug("-mqmsdebug", "Camera$EventHandler handleMessage(), machiningFrameData time = " + (System.currentTimeMillis() - tt1));
+
+                        // get preview format
+//                    Field cameraField = param.thisObject.getClass().getDeclaredField("mCamera");
+//                    cameraField.setAccessible(true);
+//                    Camera camera = (Camera)cameraField.get(param.thisObject);
+//                    int previewFormat = camera.getParameters().getPreviewFormat();
+//                    Logger.debug("-mqmsdebug", "Camera$EventHandler handleMessage(), previewFormat = " + previewFormat);
+                        int previewFormat = camera.getParameters().getPreviewFormat();
+
+                        // add water mark and gen video frame data
+                        WaterMarkUtils.addWatermarkAndRecordVideo(previewData, previewFormat, currentFrameTime);
+                        WaterMarkUtils.currentFrameNum++;
+
+                        Logger.debug("-mqmsdebug", "Camera$EventHandler handleMessage(), process time = " + (System.currentTimeMillis() - t1));
+                    }
+//                            else if(HookModule.getInstance().getPackageName().equals(Constant.PACKAGE_NAME_TEST)) {
+//                                byte[] bytes = (byte[])msg.obj;
+//                                WaterMarkUtils.machiningFrameData(bytes, currentFrameTime, WaterMarkUtils.currentFrameNum);
+//                                Logger.debug("-mqmsdebug", "Camera$EventHandler handleMessage(), WaterMarkUtils.currentFrameNum for test surface view =" + WaterMarkUtils.currentFrameNum);
+//
+//                                if (HookModule.getInstance().getPackageName().equals(Constant.PACKAGE_NAME_TEST)) {
+//                                    WaterMarkUtils.currentFrameNum++;
+//                                }
+//                            }
+
+//                        Logger.info("-mqmsdebug", "Camera$EventHandler handleMessage " + Integer.toHexString(msg.what));
+
+                } else {
+                    Log.d("-mqmsdebug", "onPreviewFrame(), entry");
+                    long t1 = System.currentTimeMillis();
+
+                    // add water mark
+//                    WaterMarkUtils.machiningFrameData(data, System.currentTimeMillis(), WaterMarkUtils.currentFrameNum);
+
+                    Bitmap bitmap = tvConvertedToBitmap(System.currentTimeMillis(), WaterMarkUtils.currentFrameNum);
+                    if(bitmap != null) {
+                        byte[] bytesYUV = getYUVByBitmap(bitmap);
+                        combine(data, bytesYUV);
+                    }
+
+
+                    // set data to gpu image to display
 //                setData2GPUImage(data);
 
 
-                // set data to mediaCodec to encode to video
-                if (recording && recordByMediaCodec) {
-                    captureImg(data, previewWidth, previewHeight);
+                    // set data to mediaCodec to encode to video
+                    if (recording && recordByMediaCodec) {
+                        captureImg(data, previewWidth, previewHeight);
+                    }
+
+                    WaterMarkUtils.currentFrameNum++;
                 }
 
-
-                imageIndex++;
                 camera.addCallbackBuffer(data);
             }
         });
@@ -864,6 +977,6 @@ public class MainActivity extends AppCompatActivity {
     private void setData2GPUImage(byte[] data) {
         Bitmap bitmap2 = yuvToBitmap(data, previewWidth, previewHeight);
         gpuImage.setImage(bitmap2);
-        gpuImage.saveToPictures("/sdcard/mqms/tmp/picGPUImage", "testGPUImage_" + imageIndex + ".jpg", null);
+        gpuImage.saveToPictures("/sdcard/mqms/tmp/picGPUImage", "testGPUImage_" + WaterMarkUtils.currentFrameNum + ".jpg", null);
     }
 }
