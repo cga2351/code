@@ -463,8 +463,37 @@ void addWatermark(unsigned char* camSrcData, unsigned char* frameData, int srcWi
 
 //    LOGD("-mqmsdebug, NativeUtils_addWatermark(), entry, %s", "222");
 
-    // add water mark
+
+    // draw background
+//    Mat textImg = Mat(bgrData);
+//    Mat textImg = Mat::zeros(Size(500, 500), CV_8UC1);
+    Mat textImg = Mat::zeros(Size(500, 500), CV_8UC1);//黑色图像
+//    Mat textImg = Mat(Size(500, 500), CV_8UC1, Scalar(128,0,0));
+    Mat textROI = bgrData(Rect(100, 100, 500, 500));
+    Mat mask(textROI.rows, textROI.cols, textROI.depth(),Scalar(1));
+
+//    Mat textImg = Mat(bgrData);
+//    Mat textImaRect = bgrData(Rect(200, 200, 300, 300));
+//    cv::rectangle(textImg, Point(0, 0), Point(500, 500), LINE_8);
+
+    char* text = "123456789";
+    int font_face = cv::FONT_HERSHEY_COMPLEX;
+    double font_scale = 2;
+    int thickness = 2;
+    int baseline;
+    cv::Point origin;
+    cv::Size text_size = cv::getTextSize(text, font_face, font_scale, thickness, &baseline);
+//    origin.x = bgrData.cols / 2 - text_size.width / 2;
+//    origin.y = bgrData.rows / 2 + text_size.height / 2;
+    origin.x = 0;
+    origin.y = 500;
+    cv::putText(textImg, text, origin, font_face, font_scale, cv::Scalar(0, 255, 0), thickness, LINE_8, 0);
     LOGD("NativeUtils_addWatermark()");
+    textImg.copyTo(textROI, mask);
+//    addWeighted(bgrData, 0.5, textImg, 0.5, 0.0, bgrData);
+
+    // add water mark
+#if (0)
     //#%04d.%05d#
 //    static int count = 0;
 //    count++;
@@ -484,7 +513,7 @@ void addWatermark(unsigned char* camSrcData, unsigned char* frameData, int srcWi
     origin.y = bgrData.rows / 2 + text_size.height / 2;
     cv::putText(bgrData, text, origin, font_face, font_scale, cv::Scalar(0, 255, 255), thickness, 8, 0);
     LOGD("NativeUtils_addWatermark(),text=%s, origin.x=%d, origin.y=%d", text.c_str(), origin.x, origin.y);
-
+#endif
 
 
     // corp image
