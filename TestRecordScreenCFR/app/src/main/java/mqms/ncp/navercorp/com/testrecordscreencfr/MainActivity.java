@@ -28,7 +28,6 @@ import android.widget.Button;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Locale;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -52,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
     private final int REQUEST_CODE_SCREEN_CAPTURE = 1;
 //    private static boolean needRecord = false;
     private boolean recording = false;
+    private boolean videoMuxerStarted = false;
     private boolean recordByMediaCodec = true;
 
     private MediaProjection mediaProjection = null;
@@ -366,9 +366,10 @@ public class MainActivity extends AppCompatActivity {
                 videoEncoderSurface.release();
                 videoEncoder.stop();
                 videoEncoder.release();
-//                if (videoMuxerStart) {
-//                    videoMuxer.stop();
-//                }
+                if (videoMuxerStarted) {
+                    videoMuxer.stop();
+                    videoMuxerStarted = false;
+                }
                 videoMuxer.release();
 
                 videoEncoder = null;
@@ -411,7 +412,7 @@ public class MainActivity extends AppCompatActivity {
 
             MediaFormat inputMediaFormat = MediaFormat.createVideoFormat(videoMediaFormatType, 720, 1280);
             inputMediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, 6000 * 1024);
-            inputMediaFormat.setFloat(MediaFormat.KEY_FRAME_RATE, 30);
+            inputMediaFormat.setFloat(MediaFormat.KEY_FRAME_RATE, 50);
 //            inputMediaFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, colorFormat);
             inputMediaFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
             inputMediaFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 1);
@@ -464,45 +465,8 @@ public class MainActivity extends AppCompatActivity {
 //        });
     }
 
-    MediaCodec.BufferInfo lastFrameBufferInfo = null;
-    ByteBuffer lastFrameData = null;
-    final Object lastFrameDataSync = new Object();
-    long lastFrameTimestamp = 0;
+    private int testFlag = 0;
 
-    private void startWriteFrameThread() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                lastFrameData = null;
-                lastFrameBufferInfo = null;
-                Log.d(TAG, "startWriteFrameThread(), entry");
-                while (recording) {
-                    if (null != videoMuxer && null != lastFrameData) {
-                        if (lastFrameTimestamp != lastFrameBufferInfo.presentationTimeUs) {
-//                            if (0 == lastFrameTimestamp) {
-                                lastFrameTimestamp = lastFrameBufferInfo.presentationTimeUs;
-//                            } else {
-//                                lastFrameTimestamp += 20000;
-//                            }
-
-                            Log.d(TAG, "startWriteFrameThread(), write a sample data, lastFrameBufferInfo.presentationTimeUs=" + lastFrameBufferInfo.presentationTimeUs / 1000);
-                            synchronized (lastFrameDataSync) {
-                                lastFrameBufferInfo.presentationTimeUs = lastFrameTimestamp;
-                                videoMuxer.writeSampleData(videoTrackIndex, lastFrameData, lastFrameBufferInfo);
-                                lastFrameTimestamp = lastFrameBufferInfo.presentationTimeUs;
-                            }
-                        }
-                    }
-                    try {
-                        Thread.sleep(20);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-                Log.d(TAG, "startWriteFrameThread(), exit");
-            }
-        }).start();
-    }
     private void encodeVideoFrame() {
         MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
         int outputIndex = videoEncoder.dequeueOutputBuffer(bufferInfo, 20000);
@@ -514,16 +478,23 @@ public class MainActivity extends AppCompatActivity {
                 MediaFormat outputFormat = videoEncoder.getOutputFormat();
                 videoTrackIndex = videoMuxer.addTrack(outputFormat);
                 videoMuxer.start();
+                videoMuxerStarted = true;
                 Log.d(TAG, "encodeVideoFrame(), videoMuxer.start()");
                 break;
             case MediaCodec.INFO_TRY_AGAIN_LATER:
-//                Log.d(TAG, "encodeVideoFrame(), dequeueOutputBuffer timed out!");
+//                if (videoMuxerStarted && null != latestFrameBuffer && null != latestFrameBufferInfo) {
+//                    Log.d(TAG, "encodeVideoFrame(), dequeueOutputBuffer timed out, write the latestFrameBuffer");
+//                    latestFrameBufferInfo.presentationTimeUs = lastWriteFrameTimestampUs + 20_000;
+//                    videoMuxer.writeSampleData(videoTrackIndex, latestFrameBuffer, latestFrameBufferInfo);
+//                    lastWriteFrameTimestampUs = latestFrameBufferInfo.presentationTimeUs;
+//                }
                 break;
             default:
-                ByteBuffer outputBuffer;
+                ByteBuffer curFrameBuffer;
+
                 while (outputIndex >= 0) {
-//                    outputBuffer = videoEncoder.getOutputBuffer(outputIndex);
-//                    videoMuxer.writeSampleData(videoTrackIndex, outputBuffer, bufferInfo);
+//                    curFrameBuffer = videoEncoder.getOutputBuffer(outputIndex);
+//                    videoMuxer.writeSampleData(videoTrackIndex, curFrameBuffer, bufferInfo);
 //                    videoEncoder.releaseOutputBuffer(outputIndex, false);
 //                    outputIndex = videoEncoder.dequeueOutputBuffer(bufferInfo, 50000);
 //
@@ -532,40 +503,156 @@ public class MainActivity extends AppCompatActivity {
 //                    Log.d(TAG, "encodeVideoFrame(), write a sample video data " + logInfo);
 
 
-
                     /////////////////////////////////////////////////////////////////////////////
-                    outputBuffer = videoEncoder.getOutputBuffer(outputIndex);
-//                    videoMuxer.writeSampleData(videoTrackIndex, outputBuffer, bufferInfo);
+                    curFrameBuffer = videoEncoder.getOutputBuffer(outputIndex);
+//                    videoMuxer.writeSampleData(videoTrackIndex, curFrameBuffer, bufferInfo);
+//                    Log.d(TAG, "encodeVideoFrame(), write a sample video data interval:" + (bufferInfo.presentationTimeUs - lastWriteFrameTimestampUs) / 1000);
+//                    lastWriteFrameTimestampUs = bufferInfo.presentationTimeUs;
+//                    Log.d(TAG, "encodeVideoFrame(), bufferInfo.flags=" + bufferInfo.flags);
 
 
 
-                    String logInfo = String.format(Locale.getDefault(),", bufferInfo.flags=%d, bufferInfo.offset=%d, bufferInfo.size=%d, bufferInfo.presentationTimeUs=%d",
-                            bufferInfo.flags, bufferInfo.offset, bufferInfo.size, bufferInfo.presentationTimeUs);
-                    Log.d(TAG, "encodeVideoFrame(), write a sample video data " + logInfo);
+                    if (0 == lastWriteFrameTimestampUs) {
+                        videoMuxer.writeSampleData(videoTrackIndex, curFrameBuffer, bufferInfo);
+//                        videoMuxer.writeSampleData(videoTrackIndex, curFrameBuffer, bufferInfo);
+                        Log.d(TAG, "encodeVideoFrame(), write first sample video data :" + bufferInfo.presentationTimeUs + ",flag=" + bufferInfo.flags);
+                        lastWriteFrameTimestampUs = bufferInfo.presentationTimeUs;
+                    } else {
+//                        while (bufferInfo.presentationTimeUs - lastWriteFrameTimestampUs > 20_000) {
+//                            latestFrameBufferInfo.presentationTimeUs = lastWriteFrameTimestampUs + 20_000;
+//                            videoMuxer.writeSampleData(videoTrackIndex, latestFrameBuffer, latestFrameBufferInfo);
+//
+//                            Log.d(TAG, "encodeVideoFrame(), write a sample video data of interval:" + (latestFrameBufferInfo.presentationTimeUs - lastWriteFrameTimestampUs) / 1000);
+//                            lastWriteFrameTimestampUs = latestFrameBufferInfo.presentationTimeUs;
+//                        }
 
-                    if (bufferInfo.flags != MediaCodec.BUFFER_FLAG_CODEC_CONFIG) {
-                        Log.d(TAG, "encodeVideoFrame(), record latest frame data, presentationTimeUs=" + bufferInfo.presentationTimeUs / 1000);
-//                        lastFrameData = ByteBuffer.allocate(outputBuffer.capacity());
-                        synchronized (lastFrameDataSync) {
-                            lastFrameBufferInfo = bufferInfo;
-//                            lastFrameData = outputBuffer;
-                            lastFrameData = ByteBuffer.allocate(outputBuffer.capacity());
-                            lastFrameData.put(outputBuffer);
-                            lastFrameData.flip();
-//                            Log.d(TAG, "encodeVideoFrame(), record latest frame data, lastFrameData=" + ((Object)lastFrameData).hashCode());
+
+                        if (bufferInfo.presentationTimeUs - lastWriteFrameTimestampUs > 20_000) {
+                            videoMuxer.writeSampleData(videoTrackIndex, curFrameBuffer, bufferInfo);
+                            Log.d(TAG, "encodeVideoFrame(), write a sample video data of interval:" + (latestFrameBufferInfo.presentationTimeUs - lastWriteFrameTimestampUs) / 1000);
+                            lastWriteFrameTimestampUs = bufferInfo.presentationTimeUs;
                         }
                     }
+
+
+                    // record last frame data
+                    Log.d(TAG, "encodeVideoFrame(), bufferInfo.flags=" + bufferInfo.flags);
+                    if (bufferInfo.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME) {
+                        latestFrameBuffer = ByteBuffer.allocate(curFrameBuffer.capacity());
+                        latestFrameBuffer.put(curFrameBuffer);
+                        latestFrameBuffer.flip();
+
+                        latestFrameBufferInfo = new MediaCodec.BufferInfo();
+                        latestFrameBufferInfo.presentationTimeUs = bufferInfo.presentationTimeUs;
+                        latestFrameBufferInfo.flags = bufferInfo.flags;
+                        latestFrameBufferInfo.size = bufferInfo.size;
+                    }
+
+
+
+//                    {
+//                        MediaCodec.BufferInfo tmpBufferInfo = new MediaCodec.BufferInfo();
+//
+//                        tmpBufferInfo.presentationTimeUs = bufferInfo.presentationTimeUs;
+//                        tmpBufferInfo.flags = bufferInfo.flags;
+//                        tmpBufferInfo.size = bufferInfo.size;
+//                        ByteBuffer tmpFrameData = ByteBuffer.allocate(curFrameBuffer.capacity());
+//                        tmpFrameData.put(curFrameBuffer);
+//                        tmpFrameData.flip();
+//                        videoMuxer.writeSampleData(videoTrackIndex, tmpFrameData, tmpBufferInfo);
+//                    }
+
+
+//                    String logInfo = String.format(Locale.getDefault(),", bufferInfo.flags=%d, bufferInfo.offset=%d, bufferInfo.size=%d, bufferInfo.presentationTimeUs=%d",
+//                            bufferInfo.flags, bufferInfo.offset, bufferInfo.size, bufferInfo.presentationTimeUs);
+//                    Log.d(TAG, "encodeVideoFrame(), after dequeue output buffer, write a sample video data " + logInfo);
+
+//                    if (bufferInfo.flags != MediaCodec.BUFFER_FLAG_CODEC_CONFIG) {
+//                        Log.d(TAG, "encodeVideoFrame(), record latest frame data, presentationTimeUs=" + bufferInfo.presentationTimeUs / 1000);
+//                        latestFrameBuffer = ByteBuffer.allocate(curFrameBuffer.capacity());
+                        synchronized (lastFrameDataSync) {
+//                            Log.d(TAG, "encodeVideoFrame(), lastFrameDataSync got");
+                            if (null == latestFrameBuffer && null == latestFrameBufferInfo) {
+//                                latestFrameBuffer = curFrameBuffer;
+
+//                                latestFrameBuffer = ByteBuffer.allocate(curFrameBuffer.capacity());
+//                                latestFrameBuffer.put(curFrameBuffer);
+//                                latestFrameBuffer.flip();
+//
+//                                latestFrameBufferInfo = new MediaCodec.BufferInfo();
+//                                latestFrameBufferInfo.presentationTimeUs = bufferInfo.presentationTimeUs;
+//                                latestFrameBufferInfo.flags = bufferInfo.flags;
+//                                latestFrameBufferInfo.size = bufferInfo.size;
+
+                            }
+
+//                            Log.d(TAG, "after write to latestFrameBuffer, frame data=" + Arrays.toString(latestFrameBuffer.array()));
+//                            Log.d(TAG, "encodeVideoFrame(), record latest frame data, latestFrameBuffer=" + ((Object)latestFrameBuffer).hashCode());
+//                             Log.d(TAG, "encodeVideoFrame(), lastFrameDataSync release");
+                        }
+
+//                    }
 
 
 
 
                     videoEncoder.releaseOutputBuffer(outputIndex, false);
-                    outputIndex = videoEncoder.dequeueOutputBuffer(bufferInfo, 50000);
-
+//                    break;
+                    outputIndex = videoEncoder.dequeueOutputBuffer(bufferInfo, 0);
+//                    Log.d(TAG, "encodeVideoFrame(), outputIndex=" + outputIndex);
                     /////////////////////////////////////////////////////////////////////////////
                 }
                 break;
         }
     }
 
+    MediaCodec.BufferInfo latestFrameBufferInfo = null;
+    ByteBuffer latestFrameBuffer = null;
+    public static final Object lastFrameDataSync = new Object();
+    long lastWriteFrameTimestampUs = 0;
+
+    private void startWriteFrameThread() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+//                latestFrameBuffer = null;
+//                latestFrameBufferInfo = null;
+                Log.d(TAG, "startWriteFrameThread(), entry");
+                while (recording) {
+                    if (videoMuxerStarted && null != latestFrameBuffer && null != latestFrameBufferInfo) {
+//                        if (0 == lastFrameTimestamp || lastFrameTimestamp != latestFrameBufferInfo.presentationTimeUs) {
+//                        if (0 == lastFrameTimestamp) {
+//                            if (0 == lastFrameTimestamp) {
+//                            lastFrameTimestamp = latestFrameBufferInfo.presentationTimeUs;
+//                            } else {
+//                                lastFrameTimestamp += 20000;
+//                            }
+
+
+
+//                            synchronized (lastFrameDataSync) {
+////                                Log.d(TAG, "startWriteFrameThread(), lastFrameDataSync got");
+////                                latestFrameBufferInfo.presentationTimeUs = lastFrameTimestamp;
+//                                Log.d(TAG, "startWriteFrameThread(), write a sample data, latestFrameBufferInfo.presentationTimeUs=" + latestFrameBufferInfo.presentationTimeUs);
+//                                videoMuxer.writeSampleData(videoTrackIndex, latestFrameBuffer, latestFrameBufferInfo);
+//                                lastFrameTimestamp = latestFrameBufferInfo.presentationTimeUs;
+//
+//                                latestFrameBuffer = null;
+//                                latestFrameBufferInfo = null;
+////                                Log.d(TAG, "startWriteFrameThread(), lastFrameDataSync release");
+//                            }
+
+
+//                        }
+                    }
+                    try {
+                        Thread.sleep(20);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                Log.d(TAG, "startWriteFrameThread(), exit");
+            }
+        }).start();
+    }
 }
