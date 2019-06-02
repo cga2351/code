@@ -3,6 +3,7 @@ package mqms.ncp.navercorp.com.testrecordscreencfr;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.SurfaceTexture;
 import android.hardware.display.DisplayManager;
 import android.hardware.display.VirtualDisplay;
@@ -32,10 +33,11 @@ import java.nio.ByteBuffer;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import mqms.ncp.navercorp.com.testrecordscreencfr.recorder.coder.MediaEncoder;
 
 public class MainActivity extends AppCompatActivity {
 
-    public final String TAG = "test_cfr";
+    public static final String TAG = "test_cfr";
 
     // for video record
     private long videoStartTime = 0;
@@ -52,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
 //    private static boolean needRecord = false;
     private boolean recording = false;
     private boolean videoMuxerStarted = false;
-    private boolean recordByMediaCodec = true;
+    private int recordType = 2;
 
     private MediaProjection mediaProjection = null;
     private VirtualDisplay virtualDisplay = null;
@@ -61,6 +63,13 @@ public class MainActivity extends AppCompatActivity {
 
     private int screenCaptureResultCode = 0;
     private Intent screenCaptureData = null;
+
+    ///////////////////////////////////////////////////////////////////////////////////////
+    // test virtual display -> surface texture -> opengl -> media codec
+    private MediaEncoder encoder;
+    ///////////////////////////////////////////////////////////////////////////////////////
+
+
 
     @BindView(R.id.btn_test1)
     Button btnTest1;
@@ -125,20 +134,23 @@ public class MainActivity extends AppCompatActivity {
     private void recordingStartStop() {
         if (!recording) {
             // start record
-            if (recordByMediaCodec) {
-                startRecordScreenByMediaCodec();
-            } else {
+            if (0 == recordType) {
                 startRecordScreenByMediaRecorder();
+            } else if (1 == recordType){
+                startRecordScreenByMediaCodec();
+            } else if (2 == recordType) {
+                startRecordScreenCFR();
             }
-//            recording = true;
+
         } else {
             // stop record
-            if (recordByMediaCodec) {
-                stopRecordScreenByMediaCodec();
-            } else {
+            if (0 == recordType) {
                 stopRecordScreenByMediaRecorder();
+            } else if (1 == recordType){
+                stopRecordScreenByMediaCodec();
+            } else if (2 == recordType) {
+                stopRecordScreenCFR();
             }
-//            recording = false;
         }
     }
 
@@ -315,6 +327,46 @@ public class MainActivity extends AppCompatActivity {
 
         // start write video thread
         startWriteFrameThread();
+
+        return result;
+    }
+
+    public void stopRecordScreenCFR() {
+        if (encoder != null) {
+            encoder.stopScreen();
+            recording = false;
+        }
+    }
+
+    public String startRecordScreenCFR() {
+        String result = "success";
+
+        // test virtual display -> surface texture -> opengl -> media codec
+        result = initMediaMuxer();
+
+        WindowManager wm = (WindowManager) MainActivity.this.getSystemService(ContextWrapper.WINDOW_SERVICE);
+        Display display = wm.getDefaultDisplay();
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        display.getRealMetrics(displayMetrics);
+
+        MediaProjectionManager mediaProjectionManager = (MediaProjectionManager)MainActivity.this.getSystemService(Context.MEDIA_PROJECTION_SERVICE);
+        if (null != mediaProjectionManager) {
+            Log.d(TAG, "startRecordScreenByMediaRecorder(), screenCaptureResultCode=" + screenCaptureResultCode + ", screenCaptureData=" + screenCaptureData);
+            mediaProjection = mediaProjectionManager.getMediaProjection(screenCaptureResultCode, screenCaptureData);
+        }
+
+        if (mediaProjection != null) {
+            encoder = new MediaEncoder(mediaProjection, 720, 1280, displayMetrics.densityDpi)
+                    .setVideoBit(6000 * 1024)
+                    .setVideoFPS(100);
+        }
+
+        if (encoder != null) {
+            encoder.setOnScreenCallBack(null);
+            encoder.start();
+        }
+
+        recording = true;
 
         return result;
     }
