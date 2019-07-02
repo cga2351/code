@@ -221,7 +221,7 @@ public class MainActivity extends AppCompatActivity {
     public static boolean init = false;
     public static long currentFrameTime = 0;
     public static long firstFrameTime = 0;
-    public static int imageFormat = ImageFormat.NV21;
+    public static int imageFormat = ImageFormat.YV12;
 
     @OnClick({R.id.btn_1, R.id.btn_2, R.id.btn_3, R.id.btn_4})
     public void onViewClicked(View view) {
@@ -726,32 +726,53 @@ public class MainActivity extends AppCompatActivity {
                 (previewHeight - waterMarkWidth) / 2);
     }
 
-    private static void combineCal(byte[] initBytes, int w1, int h1, byte[] waterMarkBytes, int w2, int h2, int off_x, int off_y) {
+    private static void combineCal(byte[] initBytes, int dstWidth, int dstHeight, byte[] waterMarkBytes, int srcWidth, int srcHeight, int off_x, int off_y) {
         if(initBytes == null) {
             return;
         }
-        int size1 = w1 * h1;
-        int size2 = w2 * h2;
+        int dstSize = dstWidth * dstHeight;
+        int srcSize = srcWidth * srcHeight;
 
-        int y1 = 0;
-        int uv1 = y1 + size1;
+        int dstY = 0;
+        int uv1 = dstY + dstSize;
 
-        int y2 = 0;
-        int uv2 = y2 + size2;
+        int srcY = 0;
+        int uv2 = srcY + srcSize;
 
         int nOff;
         try {
-            for (int i = 0; i < h2; i++) {
-                nOff = w1 * (off_y + i) + off_x;
-                System.arraycopy(waterMarkBytes, y2 + w2 * i, initBytes, y1 + nOff, w2);
+
+            //copy y data
+            for (int i = 0; i < srcHeight; i++) {
+                nOff = dstWidth * (off_y + i) + off_x;
+                System.arraycopy(waterMarkBytes, srcY + srcWidth * i, initBytes, dstY + nOff, srcWidth);
             }
 
-            for (int j = 0; j < h2 / 2; j++) {
-//                nOff = w1 * (off_y / 2 + j) + off_x;
-//                System.arraycopy(waterMarkBytes, uv2 + w2 / 2 * j, initBytes, uv1 + nOff, w2);
-                nOff = (w1 / 2) * (off_y + j) + off_x;
-                System.arraycopy(waterMarkBytes, uv2 + w2 / 2 * j, initBytes, uv1 + nOff, w2 / 2);
+//            for (int j = 0; j < srcHeight / 2; j++) {
+//                nOff = dstWidth * (off_y / 2 + j) + off_x;
+//                System.arraycopy(waterMarkBytes, uv2 + srcWidth / 2 * j, initBytes, uv1 + nOff, srcWidth);
+//            }
+
+
+            // copy v data
+//            int srcVOffset = srcY + srcSize;
+//            int dstVOffset = dstY + dstSize;
+//            for (int j = 0; j < srcHeight / 2; j++) {
+//                nOff = (dstWidth / 2) * (off_y + j) + off_x;
+////                nOff = dstWidth * (off_y + j) + off_x;
+//                System.arraycopy(waterMarkBytes, srcVOffset + srcWidth / 2 * j, initBytes, dstVOffset + nOff, srcWidth / 2);
+//            }
+
+            // copy u data
+            int srcUOffset = srcY + srcSize + srcSize / 4;
+            int dstUOffset = dstY + dstSize + dstSize / 4;
+            for (int j = 0; j < srcHeight / 2; j++) {
+//                nOff = (dstWidth / 2) * (off_y + j)+ off_x;
+//                nOff = (dstWidth / 2) * (off_y + j) / 2 + off_x;
+                nOff = (dstWidth / 2) * (off_y / 2 + j) + off_x;
+                System.arraycopy(waterMarkBytes, srcUOffset + srcWidth / 2 * j, initBytes, dstUOffset + nOff, srcWidth / 2);
             }
+
         }
         catch (ArrayIndexOutOfBoundsException e) {
             Log.e("Utils combineCal", e.getMessage());
