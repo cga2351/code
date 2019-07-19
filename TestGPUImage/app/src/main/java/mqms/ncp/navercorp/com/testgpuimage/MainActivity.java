@@ -13,6 +13,7 @@ import android.hardware.Camera;
 import android.media.CamcorderProfile;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
+import android.media.MediaCodecList;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
 import android.media.MediaRecorder;
@@ -328,6 +329,34 @@ public class MainActivity extends AppCompatActivity {
 
     private void btn2Click() {
         testAgentCode = !testAgentCode;
+        /////////////////////////////////////////////////////////////////////////////////
+        /////////////////////////////////////////////////////////////////////////////////
+//        Camera camera = Camera.open(Camera.CameraInfo.CAMERA_FACING_BACK);
+//        List<Camera.Size> supportedPreviewSizes = camera.getParameters().getSupportedPreviewSizes();
+//        Logger.debug("-mqmsdebug", "supportedPreviewSizes=" + supportedPreviewSizes);
+//        try {
+//            MediaCodec mediaCodec = MediaCodec.createEncoderByType(MediaFormat.MIMETYPE_VIDEO_MPEG4);
+//            String []supportedTypes = mediaCodec.getCodecInfo().getSupportedTypes();
+//            MediaCodecInfo.CodecCapabilities codecCapabilities = mediaCodec.getCodecInfo().getCapabilitiesForType(MediaFormat.MIMETYPE_VIDEO_MPEG4);
+//            int[] colorFormats = codecCapabilities.colorFormats;
+//            Logger.debug("-mqmsdebug", "colorFormats=0x" + Arrays.toString(colorFormats));
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+        /////////////////////////////////////////////////////////////////////////////////
+        if (null != camera) {
+            if (testAgentCode) {
+                Log.d("-mqmsdebug", "onViewClicked() 2, set preview fps to 15");
+                camera.getParameters().setPreviewFpsRange(15, 15);
+            } else {
+                Log.d("-mqmsdebug", "onViewClicked() 2, set preview fps to 30");
+                camera.getParameters().setPreviewFpsRange(30, 30);
+            }
+            int[] fps = new int[2];
+            camera.getParameters().getPreviewFpsRange(fps);
+            Log.d("-mqmsdebug", "onViewClicked() 2, after set preview fps:" + Arrays.toString(fps));
+        }
+        /////////////////////////////////////////////////////////////////////////////////
     }
 
     private void btn1Click() {
@@ -347,7 +376,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             try {
-                Thread.sleep(2000);
+                Thread.sleep(1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -395,7 +424,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         StartPlayVideoReq startPlayVideoReq = new StartPlayVideoReq();
-        startPlayVideoReq.setAddWaterMarkTimeStamp(System.currentTimeMillis() + 2000);
+        startPlayVideoReq.setAddWaterMarkTimeStamp(System.currentTimeMillis() + 1000);
         startPlayVideoReq.setDuration(5000L);
         startPlayVideoReq.setPlayVideoFullPath("");
         startPlayVideoReq.setRecordVideoFullPath("/sdcard/mqms/tmp/testRecordVideo/recordByMediaCodec.mp4");

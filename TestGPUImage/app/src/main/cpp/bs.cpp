@@ -463,57 +463,62 @@ void addWatermark(unsigned char* camSrcData, unsigned char* frameData, int srcWi
 
 //    LOGD("-mqmsdebug, NativeUtils_addWatermark(), entry, %s", "222");
 
-
-    // draw background
-//    Mat textImg = Mat(bgrData);
-//    Mat textImg = Mat::zeros(Size(500, 500), CV_8UC1);
-    Mat textImg = Mat::zeros(Size(500, 500), CV_8UC1);//黑色图像
-//    Mat textImg = Mat(Size(500, 500), CV_8UC1, Scalar(128,0,0));
-    Mat textROI = bgrData(Rect(100, 100, 500, 500));
-    Mat mask(textROI.rows, textROI.cols, textROI.depth(),Scalar(1));
-
-//    Mat textImg = Mat(bgrData);
-//    Mat textImaRect = bgrData(Rect(200, 200, 300, 300));
-//    cv::rectangle(textImg, Point(0, 0), Point(500, 500), LINE_8);
-
-    char* text = "123456789";
-    int font_face = cv::FONT_HERSHEY_COMPLEX;
-    double font_scale = 2;
-    int thickness = 2;
-    int baseline;
-    cv::Point origin;
-    cv::Size text_size = cv::getTextSize(text, font_face, font_scale, thickness, &baseline);
-//    origin.x = bgrData.cols / 2 - text_size.width / 2;
-//    origin.y = bgrData.rows / 2 + text_size.height / 2;
-    origin.x = 0;
-    origin.y = 500;
-    cv::putText(textImg, text, origin, font_face, font_scale, cv::Scalar(0, 255, 0), thickness, LINE_8, 0);
-    LOGD("NativeUtils_addWatermark()");
-    textImg.copyTo(textROI, mask);
-//    addWeighted(bgrData, 0.5, textImg, 0.5, 0.0, bgrData);
-
     // add water mark
-#if (0)
-    //#%04d.%05d#
-//    static int count = 0;
-//    count++;
-//    char textWatermark[64] = {0};
-//    sprintf(textWatermark, "#%04d.%05d#", count, count * 100 + count);
-    std::string text = textWatermark;
-    int font_face = cv::FONT_HERSHEY_COMPLEX;
-    double font_scale = 2;
-    int thickness = 2;
-    int baseline;
-    //获取文本框的长宽
-    cv::Size text_size = cv::getTextSize(text, font_face, font_scale, thickness, &baseline);
+//    FONT_HERSHEY_SIMPLEX        = 0, //!< normal size sans-serif font
+//    FONT_HERSHEY_PLAIN          = 1, //!< small size sans-serif font
+//    FONT_HERSHEY_DUPLEX         = 2, //!< normal size sans-serif font (more complex than FONT_HERSHEY_SIMPLEX)
+//    FONT_HERSHEY_COMPLEX        = 3, //!< normal size serif font
+//    FONT_HERSHEY_TRIPLEX        = 4, //!< normal size serif font (more complex than FONT_HERSHEY_COMPLEX)
+//    FONT_HERSHEY_COMPLEX_SMALL  = 5, //!< smaller version of FONT_HERSHEY_COMPLEX
+//    FONT_HERSHEY_SCRIPT_SIMPLEX = 6, //!< hand-writing style font
+//    FONT_HERSHEY_SCRIPT_COMPLEX = 7, //!< more complex variant of FONT_HERSHEY_SCRIPT_SIMPLEX
+    static int fontIndex = -1;
+    fontIndex++;
+    fontIndex %= (FONT_HERSHEY_SCRIPT_COMPLEX + 1);
 
-    //将文本框居中绘制
+//    LOGD("NativeUtils_addWatermark()");
+    fontIndex = cv::FONT_HERSHEY_SIMPLEX;
+    double font_scale = 2;
+    int thickness = 4;
+    int watermarkWidth = 600;
+    int watermarkHeight = 150;
+    int baseline;
+
+//    Mat watermarkImg;
+//    Mat watermarkImgRect = bgrData(Rect(100, 100, 500, 500));
+//    Size size(500, 500);
+//    watermarkImg.create(size, CV_MAKETYPE(bgrData.depth(), 3));
+//    watermarkImg = Scalar::all(0);
+//    cv::putText(watermarkImg, textWatermark, Point(200, 200), font_face, font_scale, cv::Scalar(0, 0, 255), thickness, LINE_8, 0);
+//    watermarkImg.copyTo(watermarkImgRect);
+//    LOGD("-mqmsdebug, NativeUtils_addWatermark(), 1, bgrData.cols=%d, bgrData.rows=%d",  bgrData.cols, bgrData.rows);
+    Mat watermarkImg;
+    Mat watermarkImgRect = bgrData(Rect((srcWidth - watermarkHeight) / 2, (srcHeight - watermarkWidth) / 2, watermarkHeight, watermarkWidth));
+//    Mat watermarkImg = Mat(Size(300, 300), CV_8UC1, Scalar(255, 0, 0));
+    watermarkImg.create(Size(watermarkWidth, watermarkHeight), CV_MAKETYPE(bgrData.depth(), 3));
+    watermarkImg = Scalar::all(0);
+//    LOGD("-mqmsdebug, NativeUtils_addWatermark(), 2, watermarkImg.cols=%d, watermarkImg.rows=%d",watermarkImg.cols, watermarkImg.rows);
+
+    cv::Size text_size = cv::getTextSize(textWatermark, fontIndex, font_scale, thickness, &baseline);
+//    LOGD("-mqmsdebug, NativeUtils_addWatermark(), 3, text_size.width=%d, text_size.height=%d",text_size.width, text_size.height);
     cv::Point origin;
-    origin.x = bgrData.cols / 2 - text_size.width / 2;
-    origin.y = bgrData.rows / 2 + text_size.height / 2;
-    cv::putText(bgrData, text, origin, font_face, font_scale, cv::Scalar(0, 255, 255), thickness, 8, 0);
-    LOGD("NativeUtils_addWatermark(),text=%s, origin.x=%d, origin.y=%d", text.c_str(), origin.x, origin.y);
-#endif
+    origin.x = watermarkImg.cols / 2 - text_size.width / 2;
+    origin.y = watermarkImg.rows / 2 + text_size.height / 2;
+
+//    LOGD("-mqmsdebug, NativeUtils_addWatermark(),  watermarkImgRect.cols=%d, watermarkImgRect.rows=%d, watermarkImg.cols=%d, watermarkImg.rows=%d, text_size.width=%d, text_size.height=%d, origin.x=%d, origin.y=%d",
+//         watermarkImgRect.cols, watermarkImgRect.rows, watermarkImg.cols, watermarkImg.rows, text_size.width, text_size.height, origin.x, origin.y);
+
+    cv::putText(watermarkImg, textWatermark, origin, fontIndex, font_scale, cv::Scalar(0, 0, 255), thickness, LINE_8, 0);
+    cv::rotate(watermarkImg, watermarkImg, ROTATE_90_COUNTERCLOCKWISE);
+    watermarkImg.copyTo(watermarkImgRect);
+
+
+
+//    Mat watermarkImgRect = bgrData(Rect(100, 100, 500, 500));
+//    Mat watermarkImg = Mat(bgrData);
+//    cv::putText(watermarkImg, textWatermark, Point(200, 200), font_face, font_scale, cv::Scalar(0, 0, 255), thickness, LINE_8, 0);
+//    addWeighted(bgrData, 0.5, watermarkImg, 0.5, 0, bgrData);
+
 
 
     // corp image

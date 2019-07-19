@@ -488,10 +488,28 @@ public class WaterMarkUtils {
             return;
         }
         ByteBuffer inputBuffer = videoEncoder.getInputBuffer(inputIndex);
+        Logger.debug("-mqmsdebug", "dequeueInputBuffer, 1, inputBuffer=" + inputBuffer +
+                ", data.lenght=" + data.length +
+                ", videoInfo.size=" + videoInfo.size);
+
         inputBuffer.clear();
         inputBuffer.put(data);
         inputBuffer.limit(videoInfo.size);
+        Logger.debug("-mqmsdebug", "dequeueInputBuffer, 2, inputBuffer=" + inputBuffer);
+//        inputBuffer.clear();
+        Logger.debug("-mqmsdebug", "dequeueInputBuffer, 3, inputBuffer=" + inputBuffer);
         videoEncoder.queueInputBuffer(inputIndex, 0, data.length, videoInfo.presentationTimeUs, videoInfo.flags);
+        Logger.debug("-mqmsdebug", "dequeueInputBuffer, 4,,inputBuffer=" + inputBuffer);
+
+
+//        // fill empty data
+//        byte[] emptyData = new byte[data.length];
+//        inputBuffer.clear();
+//        inputBuffer.put(emptyData);
+//        inputBuffer.limit(videoInfo.size);
+//        videoEncoder.queueInputBuffer(inputIndex, 0, emptyData.length, videoInfo.presentationTimeUs, videoInfo.flags);
+//        Logger.debug("-mqmsdebug", "dequeueInputBuffer, 3,,inputBuffer=" + inputBuffer);
+
     }
 
     public static void startAddWatermark(StartPlayVideoReq startPlayVideoReq) {
@@ -643,6 +661,7 @@ public class WaterMarkUtils {
                 while (outputIndex >= 0) {
 //                    Logger.debug("-mqmsdebug", "write a sample video data");
                     outputBuffer = videoEncoder.getOutputBuffer(outputIndex);
+                    Logger.debug("-mqmsdebug", "write a sample video data, outputBuffer=" + outputBuffer);
                     videoMuxer.writeSampleData(videoTrackIndex, outputBuffer, bufferInfo);
                     videoEncoder.releaseOutputBuffer(outputIndex, false);
                     outputIndex = videoEncoder.dequeueOutputBuffer(bufferInfo, 50000);

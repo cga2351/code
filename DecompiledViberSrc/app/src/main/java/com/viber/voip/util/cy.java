@@ -1,0 +1,22 @@
+package com.viber.voip.util;
+
+import java.util.Set;
+
+final class cy
+  implements Runnable
+{
+  private final Set a;
+
+  cy(Set arg1)
+  {
+  }
+
+  public void run()
+  {
+  }
+}
+
+/* Location:           E:\Study\Tools\apktool2_2\dex2jar-0.0.9.15\classes_viber_4_dex2jar.jar
+ * Qualified Name:     com.viber.voip.util.cy
+ * JD-Core Version:    0.6.2
+ */

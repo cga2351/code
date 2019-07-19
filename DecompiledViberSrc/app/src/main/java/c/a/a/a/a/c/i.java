@@ -1,0 +1,11 @@
+package c.a.a.a.a.c;
+
+public abstract interface i<T> extends Comparable<T>
+{
+  public abstract e b();
+}
+
+/* Location:           E:\Study\Tools\apktool2_2\dex2jar-0.0.9.15\classes_viber_dex2jar.jar
+ * Qualified Name:     c.a.a.a.a.c.i
+ * JD-Core Version:    0.6.2
+ */

@@ -1,0 +1,11 @@
+package com.google.android.exoplayer2.metadata;
+
+public abstract interface a
+{
+  public abstract Metadata a(c paramc);
+}
+
+/* Location:           E:\Study\Tools\apktool2_2\dex2jar-0.0.9.15\classes_viber_dex2jar.jar
+ * Qualified Name:     com.google.android.exoplayer2.metadata.a
+ * JD-Core Version:    0.6.2
+ */
