@@ -1,5 +1,5 @@
 
-div.background {
+div.titleBackground {
     /*position: absolute;*/
     /*z-index: -2;*/
     margin: 0 auto;
@@ -78,3 +78,46 @@ img#btnService {
     /*background: lightyellow;*/
     /*background-image: url("../design/pic/分组 13 copy 2.png");*/
 }
+
+img#swipeDonw {
+    display: block;
+    margin: 50px auto 0 auto;
+}
+
+div.headlineContainer {
+    margin-top:20px;
+}
+div.headlineContainer div.headlineNormal {
+    display: inline;
+    font-size: 1.5em;
+    margin: 0 20px;
+}
+div.headlineContainer div.headlineSelected {
+    display: inline;
+    font-size: 3em;
+    margin: 0 20px;
+    border-bottom: 5px solid aqua;
+}
+
+/*div.headline {*/
+    /*margin-top: 10px;*/
+    /*padding: 20px;*/
+/*}*/
+
+div.headlineInfo {
+    margin-top: 10px;
+    padding: 20px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
