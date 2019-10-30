@@ -1,0 +1,80 @@
+
+div.background {
+    /*position: absolute;*/
+    /*z-index: -2;*/
+    margin: 0 auto;
+    background-repeat: no-repeat;
+    /*width: fit-content;*/
+    /*height: fit-content;*/
+    width: 750px;
+    height: 1206px;
+    background-image: url("../design/pic/Image 1.png");
+}
+
+div.backgroundImg {
+
+    /*position: absolute;*/
+    /*z-index: -1;*/
+    width: 750px;
+    height: 1206px;
+    background: black;
+    opacity: 0.4;
+
+}
+
+img.titleImg {
+    /*position: absolute;*/
+    /*z-index: 2;*/
+    /*padding: 20px 0 0 20px;*/
+    left: 20px;
+    top: 20px;
+}
+
+img.menu {
+    /*position: absolute;*/
+    /*z-index: 2;*/
+    float: right;
+    padding: 20px 20px 0 0;
+}
+
+p.title {
+    /*position: absolute;*/
+    /*z-index: 2;*/
+    color: white;
+    font-size: 4.2em;
+    text-align: center;
+    margin-top: 270px;
+}
+p.subTitle {
+     /*position: absolute;*/
+     /*z-index: 2;*/
+     color: white;
+     font-size: 2em;
+     text-align: center;
+ }
+
+p.detail {
+    color: white;
+    font-size: 20px;
+    background-color: aqua;
+    width: fit-content;
+    height: fit-content;
+    padding: 30px;
+    border-radius: 40px;
+    margin: 60px auto 0 auto;
+}
+
+img#btnPreserve{
+    margin-top: 100px;
+    display: block;
+    float: right;
+    /*background: fuchsia;*/
+    /*background-image: url("../design/pic/分组 12 copy 2.png");*/
+}
+img#btnService {
+    display: block;
+    float: right;
+    clear: right;
+    /*background: lightyellow;*/
+    /*background-image: url("../design/pic/分组 13 copy 2.png");*/
+}
