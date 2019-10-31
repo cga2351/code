@@ -65,56 +65,127 @@ p.detail {
     margin: 60px auto 0 auto;
 }
 
-img#btnPreserve{
+div.btnPreserveService {
+    /*width: 400px;*/
     margin-top: 100px;
-    display: block;
-    float: right;
+    /*border: 3px solid red;*/
+    /*background: lightblue;*/
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+img#btnPreserve{
+
+    /*display: block;*/
+    /*float: right;*/
     /*background: fuchsia;*/
     /*background-image: url("../design/pic/分组 12 copy 2.png");*/
 }
 img#btnService {
-    display: block;
-    float: right;
-    clear: right;
+    /*display: block;*/
+    /*float: right;*/
+    /*clear: right;*/
     /*background: lightyellow;*/
     /*background-image: url("../design/pic/分组 13 copy 2.png");*/
 }
 
-img#swipeDonw {
+img#swipeDown {
     display: block;
-    margin: 50px auto 0 auto;
+    margin: 30px auto 0 auto;
 }
 
 div.headlineContainer {
     margin-top:20px;
+    /*background: lightblue;*/
 }
 div.headlineContainer div.headlineNormal {
-    display: inline;
     font-size: 1.5em;
     margin: 0 20px;
 }
 div.headlineContainer div.headlineSelected {
-    display: inline;
     font-size: 3em;
     margin: 0 20px;
-    border-bottom: 5px solid aqua;
 }
 
-/*div.headline {*/
+div.headline {
+    padding-top: 20px;
+}
+
+div.headlineItem {
+    padding:0px 20px;
+    /*margin-bottom: 20px;*/
+    display: flex;
+    flex-direction: column;
+    /*background: lightblue;*/
+}
+
+div.headlineItemInfo {
     /*margin-top: 10px;*/
     /*padding: 20px;*/
-/*}*/
-
-div.headlineInfo {
-    margin-top: 10px;
-    padding: 20px;
+    display: flex;
+    flex-direction: row;
+    /*background: lightblue;*/
 }
 
+img.headlineItemInfoPic {
+    /*margin-top: 10px;*/
+    /*padding: 20px;*/
+    /*flex-grow: 1;*/
+    /*flex-shrink: 1;*/
+    width: 200px;
+    height: 135px;
+    /*flex-grow: 0;*/
+}
 
+div.headlineItemInfoTitle {
+    /*background: lightyellow;*/
+    /*margin-top: 10px;*/
+    /*padding: 20px;*/
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    /*flex-shrink: 0;*/
+    justify-content: space-between;
+}
 
+div.headlineItemInfoTitle1 {
+    margin-top: 5px;
+    margin-left: 20px;
 
+}
 
+div.headlineItemInfoTitle2 {
+    margin-top: 10px;
+    margin-left: 20px;
+}
 
+div.headlineItemInfoSource {
+    margin-top: 10px;
+    margin-left: 20px;
+    margin-bottom: 5px;
+    color: darkgrey;
+}
+
+p.headlineItemDivider {
+    border: 0.5px solid darkgrey;
+}
+
+div.footer {
+    background: #222222;
+    padding: 20px 0;
+}
+
+div.contactContainer {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+
+div.companyInfo {
+    color: white;
+}
 
 
 
