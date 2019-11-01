@@ -1,54 +1,49 @@
 
 div.titleBackground {
-    /*position: absolute;*/
-    /*z-index: -2;*/
+    /*margin: 0 auto;*/
+    /*background-repeat: no-repeat;*/
+    width: 750px;
+    height: 1206px;
+}
+
+div.titleBackgroundImg {
     margin: 0 auto;
     background-repeat: no-repeat;
-    /*width: fit-content;*/
-    /*height: fit-content;*/
     width: 750px;
     height: 1206px;
     background-image: url("../design/pic/Image 1.png");
+    z-index: -2;
+    position: absolute;
 }
-
-div.backgroundImg {
-
-    /*position: absolute;*/
-    /*z-index: -1;*/
+div.titleBackgroundTransparentGrey {
+    background-color: black;
+    opacity: 0.5;
     width: 750px;
     height: 1206px;
-    background: black;
-    opacity: 0.4;
-
+    z-index: -1;
+    position: absolute;
 }
 
+div.topMenu {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
 img.titleImg {
-    /*position: absolute;*/
-    /*z-index: 2;*/
-    float: left;
     padding: 20px 0 0 20px;
-    /*left: 20px;*/
-    /*top: 20px;*/
 }
 
 img.menu {
-    /*position: absolute;*/
-    /*z-index: 2;*/
-    float: right;
     padding: 20px 20px 0 0;
 }
 
 p.title {
-    /*position: absolute;*/
-    /*z-index: 2;*/
     color: white;
     font-size: 4.2em;
     text-align: center;
     margin-top: 270px;
 }
 p.subTitle {
-     /*position: absolute;*/
-     /*z-index: 2;*/
      color: white;
      font-size: 2em;
      text-align: center;
@@ -108,8 +103,11 @@ div.headlineContainer div.headlineSelected {
     margin: 0 20px;
 }
 
-div.headline {
+ul.headline {
     padding-top: 20px;
+    padding-left: 0px;
+    list-style-type: none;
+    list-style-position: outside;
 }
 
 div.headlineItem {
