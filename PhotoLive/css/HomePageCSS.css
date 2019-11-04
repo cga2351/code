@@ -1,0 +1,363 @@
+
+div.titleBackground {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 750px;
+    height: 1206px;
+
+    /*margin: 0 auto;*/
+    /*background-repeat: no-repeat;*/
+    /*background-image: url("../design/pic/Image 1.png");*/
+}
+div.titleBackgroundImg {
+    margin: 0 auto;
+    background-repeat: no-repeat;
+    width: 750px;
+    height: 1206px;
+    background-image: url("../design/pic/Image 1.png");
+    z-index: -2;
+    position: absolute;
+}
+div.titleBackgroundTransparentGrey {
+    background-color: black;
+    opacity: 0.5;
+    width: 750px;
+    height: 1206px;
+    z-index: -1;
+    position: absolute;
+}
+
+div.topMenu {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+img.titleImg {
+    padding: 20px 0 0 20px;
+}
+
+img.menu {
+    padding: 20px 20px 0 0;
+}
+
+p.title {
+    color: white;
+    font-size: 4.2em;
+    text-align: center;
+    margin-top: 270px;
+}
+p.subTitle {
+    color: white;
+    font-size: 2em;
+    text-align: center;
+}
+
+p.detail {
+    color: white;
+    font-size: 20px;
+    background-color: aqua;
+    width: fit-content;
+    height: fit-content;
+    padding: 30px;
+    border-radius: 40px;
+    margin: 60px auto 0 auto;
+}
+
+img#swipeDown {
+    display: block;
+    margin: 30px auto 0 auto;
+}
+
+div.businessSummary {
+    margin: 0 auto;
+    background-repeat: no-repeat;
+    width: 750px;
+    height: 1206px;
+
+    display: flex;
+    flex-direction: column;
+    /*background: lightyellow;*/
+}
+
+div.businessSummaryBackgroundImg {
+    margin: 0 auto;
+    background-repeat: no-repeat;
+    width: 750px;
+    height: 1206px;
+    background-image: url("../design/pic/Image 1.png");
+    position: absolute;
+    z-index: -2;
+}
+
+div.businessSummaryBackgroundTransparentGrey {
+    background-color: black;
+    opacity: 0.5;
+    width: 750px;
+    height: 1206px;
+    position: absolute;
+    z-index: -1;
+}
+
+div.businessSummaryInfo {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    padding: 70px 30px;
+}
+div.photoLive {
+    color:white;
+    flex-grow: 1;
+    background-image: url("../design/pic/矩形 copy 16.png");
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+div.videoLive {
+    color:white;
+    flex-grow: 1;
+    background-image: url("../design/pic/矩形 copy 16.png");
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    margin-top:30px;
+}
+div.videoQuickEdit {
+    color:white;
+    flex-grow: 1;
+    background-image: url("../design/pic/矩形 copy 16.png");
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    margin-top:30px;
+}
+
+div.serviceWorth {
+    margin-top: 70px;
+    /*background: lightblue;*/
+
+}
+div.serviceWorthTitle {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+div.serviceWorthSummary {
+    margin-top:30px;
+    text-align: center;
+    padding: 0 30px;
+    font-size: 1.3em;
+}
+div.serviceWorthDetail {
+    margin: 50px 0;
+    padding-left: 60px;
+}
+div.worthDetailItem {
+    margin-top: 30px;
+    display: flex;
+    flex-direction: row;
+    /*background: lightblue;*/
+}
+div.worthDetailIndex {
+    font-size: 3em;
+    color: aquamarine;
+}
+div.worthDetailInfo {
+    display: flex;
+    flex-direction: column;
+}
+div.worthDetailInfoTitle {
+    font-size: 2em;
+    font-weight: bold;
+    margin: 10px 20px;
+}
+div.worthDetailInfoDescription {
+    font-size: 1.2em;
+    color: grey;
+    margin: 10px 20px;
+}
+
+div.photoLiveCase {
+    margin-top: 70px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+div.photoLiveCaseTitle {
+    margin: 50px;
+    color: white;
+}
+div.photoLiveCaseTitleImg {
+    position: absolute;
+    z-index: -1;
+    width: 750px;
+    height: 300px;
+    background-image: url("../design/pic/Image 1.png");
+    background-size: cover;
+}
+
+div.photoLiveCaseInfo {
+    width: 70%;
+    /*height:400px;*/
+    padding: 30px;
+    background: aquamarine;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+div.photoLiveAdvantage {
+    margin-top: 70px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /*background: lightyellow;*/
+}
+/*div.advantageTitle {*/
+    /*display: flex;*/
+    /*flex-direction: row;*/
+    /*align-items: center;*/
+    /*font-size: 2em;*/
+    /*!*background: lightblue;*!*/
+/*}*/
+div.advantageList{
+    margin-top: 20px;
+}
+
+div.advantageList li{
+    font-size: 1.7em;
+    list-style: none;
+    margin-top: 30px;
+    /*background: lightblue;*/
+}
+
+div.advantageListItem {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+}
+div.advantageListItemImg {
+    display: inline-block;
+    height: 25px;
+    width: 25px;
+    background-size: contain;
+    background-image: url("../design/pic/分组 10 copy 9.png");
+}
+div.advantageListItemText {
+    display: inline-block;
+    padding-left: 20px;
+}
+
+div.serverScenario {
+    margin-top: 70px;
+    background-image: url("../design/pic/Image 1.png");
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-bottom: 30px;
+}
+div.serverScenarioTitle {
+    margin-top: 50px;
+    margin-bottom: 50px;
+}
+
+div.serverScenarioList {
+    display: flex;
+    flex-direction: row;
+    /*justify-content: space-around;*/
+    justify-content: center;
+    flex-wrap: wrap;
+    /*background: lightblue;*/
+}
+div.serverScenarioListItem {
+    width: 200px;
+    height: 200px;
+    margin: 5px;
+    background-image: url("../design/pic/矩形 copy 19.png");
+    color: white;
+    font-size: 2em;
+    text-align: center;
+    line-height: 200px;
+}
+
+div.operationCenter {
+    margin-top: 70px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /*background: lightblue;*/
+}
+div.operationCenterSummary {
+    margin-top: 30px;
+    font-size: 1.3em;
+    text-align: center;
+}
+
+div.customerRelationship {
+    margin-top: 70px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+div.newsInfo {
+    margin-top: 70px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+div.newInfoItemList {
+    /*background: lightblue;*/
+    margin-top: 50px;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    overflow: hidden;
+    width: 100%;
+}
+
+div.newInfoItem:first-child {
+    margin-left: 20px;
+}
+
+div.newInfoItem {
+    margin: 30px 10px;
+    display: flex;
+    flex-direction: column;
+
+}
+
+img.newInfoImg {
+    width: 400px;
+    height: 300px;
+}
+
+div.footer {
+    background: #222222;
+    padding: 50px 0;
+}
+
+div.contactContainer {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+
+div.companyInfo {
+    color: white;
+}
+
+
+
+
+
+
+
