@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'LakeDemoUI.dart';
 import 'TestBtn1UI.dart';
 import 'TestBtn3UI.dart';
+import 'TestBtn4UI.dart';
 import 'TestClass.dart';
 
 void main() => runApp(new MyApp("abc"));
@@ -126,26 +127,39 @@ class RandomWordsState extends State<RandomWords> {
               }),
         ),
         Container(
-          height: 80,
-          padding: EdgeInsets.only(left: 20),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
+          width: 700,
+          height: 100,
+//          padding: EdgeInsets.only(left: 20),
+          child: Wrap(
+            direction: Axis.horizontal,
+            alignment: WrapAlignment.start,
+//            mainAxisAlignment: MainAxisAlignment.start,
             children: <Widget>[
               Container(
                   padding: EdgeInsets.only(left: 5, right: 5),
                   child: RaisedButton(
                     child: Text("Btn1"),
-                    onPressed: _onPressTestBtn1,)),
+                    onPressed: _onPressTestBtn1)),
               Container(
                   padding: EdgeInsets.only(left: 5, right: 5),
                   child: RaisedButton(
                     child: Text("Btn2"),
-                    onPressed: _onPressTestBtn2,)),
+                    onPressed: _onPressTestBtn2)),
               Container(
                   padding: EdgeInsets.only(left: 5, right: 5),
                   child: RaisedButton(
                     child: Text("Btn3"),
-                    onPressed: _onPressTestBtn3,)),
+                    onPressed: _onPressTestBtn3)),
+              Container(
+                  padding: EdgeInsets.only(left: 5, right: 5),
+                  child: RaisedButton(
+                    child: Text("Btn4"),
+                    onPressed: _onPressTestBtn4)),
+              Container(
+                  padding: EdgeInsets.only(left: 5, right: 5),
+                  child: RaisedButton(
+                    child: Text("Btn5555555555"),
+                    onPressed: null)),
 //            MaterialButton(
 //              child: Text("testBtn1"),
 //              onPressed: _onPressTestBtn1,
@@ -228,5 +242,12 @@ class RandomWordsState extends State<RandomWords> {
         builder: (buildContext) {
           return TestBtn3UI();
         }));
+  }
+  void _onPressTestBtn4() {
+    Navigator.of(buildContext).push(MaterialPageRoute(
+      builder: (buildContext) {
+        return TestBtn4UI();
+      }
+    ));
   }
 }

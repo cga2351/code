@@ -71,18 +71,7 @@ class TestJsonEntity2 {
 }
 
 Future logInWithAsync(String userName, String password) {
-//  FileSystemEntity.isDirectory(
-
-//  Timer.run(() {
-//    print("log in process");
-//    if (userName == "cga" && password == "123") {
-//      return "success";
-//    } else {
-//      return "password error";
-//    }
-//  });
-
-  return Future(() {
+  return Future<String>(() {
     print("log in process");
     if (userName == "cga" && password == "123") {
       return "success";
@@ -90,10 +79,9 @@ Future logInWithAsync(String userName, String password) {
       return "password error";
     }
   });
-
 }
 
-class Receiver {
+class ThreadParams {
   SendPort sendPort;
   String param1;
   int param2;
@@ -318,6 +306,10 @@ class Employee extends Person {
   Employee.fromJson(String jsonData) : super.fromJson(jsonData) {
     print("Employee's fromJson() entry");
   }
+
+  static int staticFunc() {
+    return 1;
+  }
 }
 
 class Point {
@@ -424,24 +416,27 @@ void testAsyncFeature() {
   testReadFile(readFile);
 
   // multi thread
-  Receiver receiver = Receiver();
+  ThreadParams threadParams = ThreadParams();
   ReceivePort receivePort = ReceivePort();
-  receiver.sendPort = receivePort.sendPort;
-  receiver.param1 = "abc";
-  receiver.param2 = 300;
-  print("receivePort.sendPort=${receivePort.sendPort.hashCode}, receiver=${receiver.hashCode}");
-  Isolate.spawn(computation, receiver);
+  threadParams.sendPort = receivePort.sendPort;
+  threadParams.param1 = "abc";
+  threadParams.param2 = 300;
+  print("receivePort.sendPort=${receivePort.sendPort.hashCode}, threadParams=${threadParams.hashCode}");
+  Isolate.spawn(computation, threadParams);
   receivePort.listen((data) {
     print("isolater return data=$data");
   });
 }
 
-computation(Receiver receiver) {
-  print("call sendPort.sendPort, receiver=${receiver.hashCode}");
-  print("call sendPort.sendPort, sendPort=${receiver.sendPort.hashCode}");
-  print("computation(), receiver.param1=${receiver.param1}, receiver.param2=${receiver.param2}");
-  receiver.sendPort.send("xxxx");
-  receiver.sendPort.send("yyyy");
+computation(ThreadParams threadParams) {
+  print("call sendPort.sendPort, receiver=${threadParams.hashCode}");
+  print("call sendPort.sendPort, sendPort=${threadParams.sendPort.hashCode}");
+//  print("call sendPort.sendPort, sendPort=${threadParams.receivePort.sendPort.hashCode}");
+  print("computation(), receiver.param1=${threadParams.param1}, receiver.param2=${threadParams.param2}");
+  threadParams.sendPort.send("xxxx");
+  threadParams.sendPort.send("yyyy");
+//  threadParams.receivePort.sendPort.send("xxxx");
+//  threadParams.receivePort.sendPort.send("yyyy");
 }
 
 void testReadFile(File testFile) async {
@@ -496,10 +491,11 @@ void testWriteFile(File testFile) async {
     print("testWriteFile(), file not exist, create file");
     await testFile.create(recursive: true);
   }
-  writeFile(testFile);
+  writeFileString(testFile);
 }
 
-void writeFile(File file) {
+
+void writeFileString(File file) {
   IOSink fileSink = file.openWrite(mode: FileMode.write);
 
   // write string, invoke the object's toString() to convert to string
@@ -540,6 +536,7 @@ void requestPermission() async {
 
 void listFile(String searchPath) {
   print("listFile(), entry");
+
   FileSystemEntity.isDirectory(searchPath).then((isDir) {
     if (isDir) {
       final startingDir = Directory(searchPath);
@@ -882,7 +879,7 @@ void testDart(BuildContext buildContext) async {
   fun(base2);
   fun(Base1(0, 0));
 
-//    testAsyncFeature();
+  testAsyncFeature();
 
   //
 //    File file = File("/sdcard/mqms/performance.json");
