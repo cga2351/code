@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:excel/excel.dart';
@@ -10,7 +11,6 @@ import 'package:permission_handler/permission_handler.dart';
 void main() => runApp(MainApp());
 
 class MainApp extends StatelessWidget {
-
 
   // This widget is the root of your application.
   @override
@@ -94,6 +94,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateMixin {
+  BuildContext buildContext;
 
   List bottomTabStrings = ["feature1", "feature2"];
   PageView bottomPageView;
@@ -101,14 +102,19 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   int currentBottomPageIndex = 0;
   FloatingActionButton fabAddExpense;
 
+
+  GlobalKey<FormState> addExpenseTypeKey = GlobalKey<FormState>();
+  bool autoValidateAddExpenseType = false;
+
+
   @override
   void initState() {
     print("_MyHomePageState.initState() entry");
 
     bottomPageView = PageView(
       children: <Widget>[
-        ButtomPage1(),
-        ButtomPage2(),
+        BottomPage1(),
+        BottomPage2(),
       ],
       controller: pageController,
       onPageChanged: (index) {
@@ -126,12 +132,13 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
 
   void onFabAddExpense() {
     print("onFabAddExpense() entry");
-
-    testExcelReadWrite();
+//    testExcelReadWrite();
+    testShowDialog();
   }
 
   @override
   Widget build(BuildContext context) {
+    buildContext = context;
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
@@ -236,8 +243,8 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
 
 
     // read from original file
-    String originContent = File("/sdcard/yl/testFlutter/testExpense.txt").readAsStringSync(encoding: utf8);
-    print("testExcelReadWrite(), originContent=$originContent");
+    String originContent = File("/sdcard/yl/testFlutter/DailyExpenseNote.txt").readAsStringSync(encoding: utf8);
+//    print("testExcelReadWrite(), originContent=$originContent");
 
     // write excel
     int sheetCurRow = 0;
@@ -246,36 +253,47 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
     String testImportSheet = "testImportSheet";
     List<String> splitContents = LineSplitter().convert(originContent);
 
-    splitContents.forEach((element) {
-      print("line content:" + element);
-      if (element.contains(".")) {
+    // separate to every expense name and expense value
+    splitContents.forEach((lineContent) {
+      if (lineContent.contains(".")) {
         sheetCurRow++;
         dailyExpenseIndex = 0;
-        print("read new day of $element");
-        excel.updateCell(testImportSheet, CellIndex.indexByColumnRow(columnIndex:dailyExpenseIndex + 1, rowIndex:sheetCurRow), element);
+        print("print allMatches() read new day of $lineContent");
+        excel.updateCell(testImportSheet, CellIndex.indexByColumnRow(columnIndex: dailyExpenseIndex + 1, rowIndex: sheetCurRow), lineContent);
       } else {
-
         // daily expense
         if (dailyExpenseIndex == 0) {
           // breakfast
-          excel.updateCell(testImportSheet, CellIndex.indexByColumnRow(columnIndex:dailyExpenseIndex + 2, rowIndex:sheetCurRow), element);
+          excel.updateCell(testImportSheet, CellIndex.indexByColumnRow(columnIndex: dailyExpenseIndex + 2, rowIndex: sheetCurRow), lineContent);
+          dailyExpenseIndex++;
         } else if (dailyExpenseIndex == 1) {
           // launch
-          excel.updateCell(testImportSheet, CellIndex.indexByColumnRow(columnIndex:dailyExpenseIndex + 2, rowIndex:sheetCurRow), element);
+          excel.updateCell(testImportSheet, CellIndex.indexByColumnRow(columnIndex: dailyExpenseIndex + 2, rowIndex: sheetCurRow), lineContent);
+          dailyExpenseIndex++;
         } else if (dailyExpenseIndex == 2) {
           // dinner
-          excel.updateCell(testImportSheet, CellIndex.indexByColumnRow(columnIndex:dailyExpenseIndex + 2, rowIndex:sheetCurRow), element);
+          excel.updateCell(testImportSheet, CellIndex.indexByColumnRow(columnIndex: dailyExpenseIndex + 2, rowIndex: sheetCurRow), lineContent);
+          dailyExpenseIndex++;
         } else {
           // other expense
-          excel.updateCell(testImportSheet, CellIndex.indexByColumnRow(columnIndex:dailyExpenseIndex + 2, rowIndex:sheetCurRow), element);
+          RegExp regExpExpenseItem = RegExp(r"[\D]+[\d\+]+");
+          regExpExpenseItem.allMatches(lineContent).forEach((match) {
+            String expenseItem = lineContent.substring(match.start, match.end);
+            int expenseValueIndex = expenseItem.indexOf(RegExp(r"\d"));
+            String expenseName = expenseItem.substring(0, expenseValueIndex);
+            String expenseValue = expenseItem.substring(expenseValueIndex);
+            if (expenseName.trim().isEmpty) {
+              expenseName = "空格";
+            }
+            print("allMatches() expenseName:$expenseName, expenseValue=$expenseValue");
+            excel.updateCell(testImportSheet, CellIndex.indexByColumnRow(columnIndex: dailyExpenseIndex + 2, rowIndex: sheetCurRow), expenseName + expenseValue);
+            dailyExpenseIndex++;
+          });
         }
-        dailyExpenseIndex++;
       }
-
     });
 
-
-
+    // save to excel file
     var file = "/sdcard/yl/testFlutter/testImportExcel.xlsx";
     excel.setDefaultSheet(testImportSheet);
     excel.encode().then((value) {
@@ -284,16 +302,90 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
         ..writeAsBytesSync(value);
     });
   }
+
+  void testShowDialog() {
+    autoValidateAddExpenseType = false;
+    showDialog(
+      context: buildContext,
+      child: AlertDialog(
+        title: Text("Add Expense Type"),
+        content:Container(
+          width: 1000,
+          height: 100,
+          child: Form(
+            key: addExpenseTypeKey,
+            autovalidate: autoValidateAddExpenseType,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: <Widget>[
+                TextFormField(
+                  decoration: InputDecoration(
+                    labelText: "expense type",
+                    hintText: "some common expense name",
+//                    helperText: "helper text 1",
+//                        icon: const Icon(Icons.person),
+                  ),
+                  validator: (value) {
+                    print("validator1() entry");
+                    if (value.isEmpty) {
+                      return "expense type name can't  be empty";
+                    } else {
+                      return null;
+                    }
+                  },
+                ),
+
+//                TextFormField(
+//                  decoration: InputDecoration(
+//                    labelText: "labe text 2",
+//                    hintText: "hint text 2",
+//                    helperText: "helper text 2",
+////                        icon: const Icon(Icons.person),
+//                  ),
+//                  validator: (value) {
+//                    print("validator2() entry");
+//                    if (value.isEmpty) {
+//                      return "error 2";
+//                    } else {
+//                      return null;
+//                    }
+//                  },
+//                ),
+
+              ],
+            ),
+          ),
+        ),
+        actions: <Widget>[
+          FlatButton(child: Text("Cancel"), onPressed: onCancelAddExpenseType,),
+          FlatButton(child: Text("Add"), onPressed: onAddExpenseType,),
+        ],
+      )
+    );
+  }
+
+  void onAddExpenseType() {
+    if (addExpenseTypeKey.currentState.validate()) {
+      print("all input ok");
+    } else {
+      print("not all input ok");
+      autoValidateAddExpenseType = true;
+    }
+  }
+
+  void onCancelAddExpenseType() {
+    Navigator.pop(buildContext, true);
+  }
 }
 
-class ButtomPage1 extends StatefulWidget{
+class BottomPage1 extends StatefulWidget{
 
   @override
   State createState() {
-    return ButtomPage1State();
+    return BottomPage1State();
   }
 }
-class ButtomPage1State extends State<ButtomPage1> {
+class BottomPage1State extends State<BottomPage1> {
 
   @override
   Widget build(BuildContext context) {
@@ -310,14 +402,14 @@ class ButtomPage1State extends State<ButtomPage1> {
   }
 }
 
-class ButtomPage2 extends StatefulWidget{
+class BottomPage2 extends StatefulWidget{
 
   @override
   State createState() {
-    return ButtomPage2State();
+    return BottomPage2State();
   }
 }
-class ButtomPage2State extends State<ButtomPage2> {
+class BottomPage2State extends State<BottomPage2> {
   List topTabStrings = ["feature1", "feature2", "feature3"];
 
   @override

@@ -25,6 +25,7 @@ dependencies:
   cupertino_icons: ^0.1.2
   excel: ^1.0.3
   permission_handler: ^3.0.0
+  shared_preferences: ^0.5.7+3
 
 dev_dependencies:
   flutter_test:
