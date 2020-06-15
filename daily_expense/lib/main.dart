@@ -8,6 +8,14 @@ import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import 'add_expense_item.dart';
+
+
+/*
+早饭 午饭 晚饭	 水 电 气	油费 停车费 过路费  车保养	   日常用品	  日常消费	   零食、水果	 娱乐消费	 上网  医药费用  买衣服		 房租	房贷	车贷	装修	其他
+									                         支出 备注	 支出 备注	  支出 备注	 支出 备注	   支出 备注	      支出 备注	支出 备注					                支出 备注
+
+ */
 void main() => runApp(MainApp());
 
 class MainApp extends StatelessWidget {
@@ -133,7 +141,8 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   void onFabAddExpense() {
     print("onFabAddExpense() entry");
 //    testExcelReadWrite();
-    testShowDialog();
+//    testShowDialog();
+    addExpenseItem(buildContext);
   }
 
   @override
