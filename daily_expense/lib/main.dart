@@ -1,14 +1,15 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:io';
 
+import 'package:dailyexpense/view/home_tabs/tab_page1.dart';
+import 'package:dailyexpense/view/home_tabs/tab_page2.dart';
+import 'package:dailyexpense/view/home_tabs/tab_daily_expense.dart';
 import 'package:excel/excel.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:path/path.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-import 'add_expense_item.dart';
+import 'view/add_expense_item.dart';
 
 
 /*
@@ -104,7 +105,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateMixin {
   BuildContext buildContext;
 
-  List bottomTabStrings = ["feature1", "feature2"];
+  List bottomTabStrings = ["DailyExpense", "Feature1", "Feature2"];
   PageView bottomPageView;
   PageController pageController = PageController(initialPage: 0);
   int currentBottomPageIndex = 0;
@@ -121,8 +122,9 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
 
     bottomPageView = PageView(
       children: <Widget>[
-        BottomPage1(),
-        BottomPage2(),
+        TabDailyExpenseView(),
+        TabPage1View(),
+        TabPage2View(),
       ],
       controller: pageController,
       onPageChanged: (index) {
@@ -201,6 +203,8 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
         }).toList(),
         onTap: onBottomNavigationItemClicked,
         currentIndex: currentBottomPageIndex,
+        selectedFontSize: 13,
+        unselectedFontSize: 13,
       ),
 
 
@@ -223,9 +227,9 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
 //        onPressed: null,
 //        child: Icon(Icons.add),
 //      ),
-      floatingActionButton: currentBottomPageIndex == 0 ? fabAddExpense : null,
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
 
+//       floatingActionButton: currentBottomPageIndex == 0 ? fabAddExpense : null,
+//       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 
@@ -387,71 +391,5 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   }
 }
 
-class BottomPage1 extends StatefulWidget{
 
-  @override
-  State createState() {
-    return BottomPage1State();
-  }
-}
-class BottomPage1State extends State<BottomPage1> {
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Text("Buttom Page 1", style: TextStyle(fontSize: 30),),
-      ),
-//      floatingActionButton: FloatingActionButton(
-//        onPressed: null,
-//        child: Icon(Icons.add),
-//      ),
-//      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-    );
-  }
-}
-
-class BottomPage2 extends StatefulWidget{
-
-  @override
-  State createState() {
-    return BottomPage2State();
-  }
-}
-class BottomPage2State extends State<BottomPage2> {
-  List topTabStrings = ["feature1", "feature2", "feature3"];
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: DefaultTabController(
-        length: topTabStrings.length,
-        child: Container(
-          child: Column(
-            children: <Widget>[
-              Container(
-//                color: Colors.redAccent,
-                height: 50,
-//              padding: EdgeInsets.all(10),
-                child: TabBar(
-                  tabs:topTabStrings.map((e) {
-                    return Text(e, style: TextStyle(fontSize: 15));
-                  }).toList(),
-                  indicatorColor: Colors.blue,
-                  labelColor: Colors.blue,
-                ),
-              ),
-              Expanded(
-                child: TabBarView(
-                  children: topTabStrings.map((e) {
-                    return Center(child: Text(e, style: TextStyle(fontSize: 50),),);
-                  }).toList()
-                ),
-              )
-            ],
-          ),
-        )
-      ),
-    );
-  }
-}
