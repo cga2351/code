@@ -1,50 +1,115 @@
-import 'dart:convert';
-import 'dart:developer';
-import 'dart:io';
-
-import 'package:excel/excel.dart';
+import 'package:dailyexpense/bloc/expense_list_bloc.dart';
+import 'package:dailyexpense/bloc/home_bloc.dart';
+import 'package:dailyexpense/page/home_page.dart';
+import 'package:dailyexpense/utils/id_utils.dart';
+import 'package:dailyexpense/utils/local_data_storage.dart';
+import 'package:dailyexpense/utils/sys_utils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:path/path.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+/*
+早饭 午饭 晚饭	 水 电 气	油费 停车费 过路费  车保养	   日常用品	  日常消费	   零食、水果	 娱乐消费	 上网  医药费用  买衣服		 房租	房贷	车贷	装修	其他
+									                         支出 备注	 支出 备注	  支出 备注	 支出 备注	   支出 备注	      支出 备注	支出 备注					                支出 备注
+
+ */
 void main() => runApp(MainApp());
 
-class MainApp extends StatelessWidget {
+void init() {
+
+  // init local data save file path first
+  LocalDataStorage.instance.init().then((_) {
+    print("LocalDataStorage.instance.init(), complete");
+
+    // create local save files
+    LocalDataStorage.instance.checkLocalFileExistSync();
+
+    // add preset expense types
+    LocalDataStorage.instance.addPresetExpenseTypes();
+
+    // init local id file
+    IDUtils.init();
+
+    // check if need to backup record file
+    LocalDataStorage.instance.checkBackupRecordFile();
+
+    // init system info class instance
+    SysUtils.init();
+
+  });
+}
+
+final GlobalKey<NavigatorState> globalNavigatorKey = new GlobalKey<NavigatorState>();
+
+class MainApp extends StatefulWidget {
+
+  @override
+  State createState() {
+    return MainAppState();
+  }
+}
+
+class MainAppState extends State<MainApp> {
+  bool grantAllPermissions = false;
 
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    requestPermissions();
-
     return MaterialApp(
+      // return GetMaterialApp(
+      navigatorKey: globalNavigatorKey,
       title: 'Daily Expense of MainApp',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
+          primarySwatch: Colors.lightBlue,
+          dialogBackgroundColor: Colors.white
       ),
-      home: MyHomePage(title: 'Daily Expense'),
+
+      // home: MyHomePage(title: 'Daily Expense'),
+
+      // home: BlocProvider<HomeBloc>(
+      //   create: (context) => HomeBloc(),
+      //   child: HomePage(title: 'Daily Expense'),
+      // ),
+
+      home: MultiBlocProvider(
+        providers: [
+          BlocProvider(create: (_) => HomeBloc(HomeStateNormal(0, 0)),),
+          BlocProvider(create: (_) => ExpenseListBloc(ExpenseListStateInit()),),
+        ],
+        child: _buildHomeView(),
+      ),
     );
   }
 
-  List<PermissionGroup> permissions = [
-    PermissionGroup.storage,
+  Widget _buildHomeView() {
+    if (grantAllPermissions) {
+      init();
+      return HomePage(title: 'Daily Expense');
+    } else {
+      requestPermissions();
+      return Scaffold(
+        appBar: AppBar(title: Text("Daily Expense")),
+        body: Center(
+          child: Text("no permission"),
+        ),
+      );
+    }
+  }
+
+  List<Permission> permissions = [
+    Permission.storage,
+    Permission.phone,
   ];
 
   void requestPermissions() async {
     print("requestPermissions(), entry");
+
     bool checkAllGranted = await checkPermissions();
     if (!checkAllGranted) {
-      PermissionHandler().requestPermissions(permissions).then((value) {
-        Map<PermissionGroup, PermissionStatus> result = value;
+      permissions.request().then((value) {
+        Map<Permission, PermissionStatus> result = value;
         bool allGranted = true;
         result.forEach((permission, status) {
           if (status == PermissionStatus.denied) {
@@ -53,6 +118,17 @@ class MainApp extends StatelessWidget {
           }
         });
         print("requestPermissions(), allGranted=$allGranted");
+        if (allGranted) {
+          // update ui
+          setState(() {
+            grantAllPermissions = true;
+          });
+        }
+      });
+    } else {
+      // update ui
+      setState(() {
+        grantAllPermissions = true;
       });
     }
   }
@@ -61,9 +137,8 @@ class MainApp extends StatelessWidget {
     bool checkAllGranted = true;
 
     for (int i = 0; i < permissions.length; i++) {
-      PermissionStatus permissionStatus = await PermissionHandler()
-          .checkPermissionStatus(permissions[i]);
-      print("checkPermissions(), permissionStatus=${permissionStatus.value}");
+      PermissionStatus permissionStatus = await permissions[i].status;
+      print("checkPermissions(), permissionStatus=$permissionStatus");
       if (permissionStatus == PermissionStatus.denied) {
         checkAllGranted = false;
         print("checkPermissions(), not all permissions granted");
@@ -71,378 +146,56 @@ class MainApp extends StatelessWidget {
     }
     return checkAllGranted;
   }
+
+  // List<PermissionGroup> permissions = [
+  //   PermissionGroup.storage,
+  // ];
+  //
+  // void requestPermissionsOld() async {
+  //   print("requestPermissions(), entry");
+  //   bool checkAllGranted = await checkPermissions();
+  //   if (!checkAllGranted) {
+  //     PermissionHandler().requestPermissions(permissions).then((value) {
+  //       Map<PermissionGroup, PermissionStatus> result = value;
+  //       bool allGranted = true;
+  //       result.forEach((permission, status) {
+  //         if (status == PermissionStatus.denied) {
+  //           print("requestPermissions(), permission of $permission denied");
+  //           allGranted = false;
+  //         }
+  //       });
+  //       print("requestPermissions(), allGranted=$allGranted");
+  //       if (allGranted) {
+  //         // update ui
+  //         setState(() {
+  //           grantAllPermissions = true;
+  //         });
+  //       }
+  //     });
+  //   } else {
+  //     // update ui
+  //     setState(() {
+  //       grantAllPermissions = true;
+  //     });
+  //   }
+  // }
+
+  // Future<bool> checkPermissions() async {
+  //   bool checkAllGranted = true;
+  //
+  //   for (int i = 0; i < permissions.length; i++) {
+  //     PermissionStatus permissionStatus = await PermissionHandler()
+  //         .checkPermissionStatus(permissions[i]);
+  //     print("checkPermissions(), permissionStatus=${permissionStatus.value}");
+  //     if (permissionStatus == PermissionStatus.denied) {
+  //       checkAllGranted = false;
+  //       print("checkPermissions(), not all permissions granted");
+  //     }
+  //   }
+  //   return checkAllGranted;
+  // }
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
-  @override
-  _MyHomePageState createState() => _MyHomePageState();
-  Center center;
-  Container container;
-}
-
-class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateMixin {
-  BuildContext buildContext;
-
-  List bottomTabStrings = ["feature1", "feature2"];
-  PageView bottomPageView;
-  PageController pageController = PageController(initialPage: 0);
-  int currentBottomPageIndex = 0;
-  FloatingActionButton fabAddExpense;
 
 
-  GlobalKey<FormState> addExpenseTypeKey = GlobalKey<FormState>();
-  bool autoValidateAddExpenseType = false;
 
-
-  @override
-  void initState() {
-    print("_MyHomePageState.initState() entry");
-
-    bottomPageView = PageView(
-      children: <Widget>[
-        BottomPage1(),
-        BottomPage2(),
-      ],
-      controller: pageController,
-      onPageChanged: (index) {
-        setState(() {
-          currentBottomPageIndex = index;
-        });
-      },
-    );
-
-    fabAddExpense = FloatingActionButton(
-      onPressed: onFabAddExpense,
-      child: Icon(Icons.add),
-    );
-  }
-
-  void onFabAddExpense() {
-    print("onFabAddExpense() entry");
-//    testExcelReadWrite();
-    testShowDialog();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    buildContext = context;
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-
-      // PageView
-      body: bottomPageView,
-
-      // Drawer
-      drawer: Drawer(
-        child: Container(
-          child: Center(
-            child: ListView(
-              children: [
-                ListTile(
-                  leading: Icon(Icons.radio),
-                  title: Text("drawer item1"),
-                ),
-                ListTile(
-                  leading: Icon(Icons.radio),
-                  title: Text("drawer item1"),
-                )
-              ],
-            ),
-          ),
-        ),
-      ),
-
-
-      // BottomNavigationBar
-      bottomNavigationBar: BottomNavigationBar(
-//        items: [
-//          BottomNavigationBarItem(
-//            title: Text("index1"),
-//            icon: Icon(Icons.phone)
-//          ),
-//          BottomNavigationBarItem(
-//              title: Text("index2"),
-//              icon: Icon(Icons.router)
-//          ),
-//          BottomNavigationBarItem(
-//              title: Text("index3"),
-//              icon: Icon(Icons.account_circle)
-//          ),
-//        ],
-        items: bottomTabStrings.map((e) {
-          return BottomNavigationBarItem(
-              title: Text(e),
-              icon: Icon(Icons.chat)
-          );
-        }).toList(),
-        onTap: onBottomNavigationItemClicked,
-        currentIndex: currentBottomPageIndex,
-      ),
-
-
-      // BottomAppBar
-//      bottomNavigationBar: BottomAppBar(
-////        color: Colors.lightBlue,
-//        shape: CircularNotchedRectangle(),
-//        child: Row(
-//          children: <Widget>[
-//            IconButton(icon: Icon(Icons.account_circle), iconSize: 40),
-////            SizedBox(), //中间位置空出
-//            IconButton(icon: Icon(Icons.account_circle), iconSize: 40),
-//          ],
-//          mainAxisAlignment: MainAxisAlignment.spaceAround,
-//        ),
-//      ),
-
-//      floatingActionButton: fabNew,
-//      floatingActionButton: FloatingActionButton(
-//        onPressed: null,
-//        child: Icon(Icons.add),
-//      ),
-      floatingActionButton: currentBottomPageIndex == 0 ? fabAddExpense : null,
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-
-    );
-  }
-
-  void onBottomNavigationItemClicked(int index) {
-    setState(() {
-      currentBottomPageIndex = index;
-      pageController.animateToPage(index, duration: Duration(milliseconds: 500), curve: Curves.ease);
-    });
-  }
-
-  void testExcelReadWrite() {
-    // read excel
-//    var file = "/sdcard/yl/testFlutter/testReadExcel.xlsx";
-//    var bytes = File(file).readAsBytesSync();
-//    Excel excel = Excel.decodeBytes(bytes, update: true);
-//    for (var table in excel.tables.keys) {
-//      print("testExcelReadWrite(), table = ${table}");
-//      print("testExcelReadWrite(), maxCols = ${excel.tables[table].maxCols}");
-//      print("testExcelReadWrite(), maxRows = ${excel.tables[table].maxRows}");
-//      for (var row in excel.tables[table].rows) {
-//        print("testExcelReadWrite(), excel sheet of ${excel.tables[table].rows.indexOf(row)} rows = $row");
-//      }
-//    }
-
-
-    // read from original file
-    String originContent = File("/sdcard/yl/testFlutter/DailyExpenseNote.txt").readAsStringSync(encoding: utf8);
-//    print("testExcelReadWrite(), originContent=$originContent");
-
-    // write excel
-    int sheetCurRow = 0;
-    int dailyExpenseIndex = 0;
-    Excel excel = Excel.createExcel();
-    String testImportSheet = "testImportSheet";
-    List<String> splitContents = LineSplitter().convert(originContent);
-
-    // separate to every expense name and expense value
-    splitContents.forEach((lineContent) {
-      if (lineContent.contains(".")) {
-        sheetCurRow++;
-        dailyExpenseIndex = 0;
-        print("print allMatches() read new day of $lineContent");
-        excel.updateCell(testImportSheet, CellIndex.indexByColumnRow(columnIndex: dailyExpenseIndex + 1, rowIndex: sheetCurRow), lineContent);
-      } else {
-        // daily expense
-        if (dailyExpenseIndex == 0) {
-          // breakfast
-          excel.updateCell(testImportSheet, CellIndex.indexByColumnRow(columnIndex: dailyExpenseIndex + 2, rowIndex: sheetCurRow), lineContent);
-          dailyExpenseIndex++;
-        } else if (dailyExpenseIndex == 1) {
-          // launch
-          excel.updateCell(testImportSheet, CellIndex.indexByColumnRow(columnIndex: dailyExpenseIndex + 2, rowIndex: sheetCurRow), lineContent);
-          dailyExpenseIndex++;
-        } else if (dailyExpenseIndex == 2) {
-          // dinner
-          excel.updateCell(testImportSheet, CellIndex.indexByColumnRow(columnIndex: dailyExpenseIndex + 2, rowIndex: sheetCurRow), lineContent);
-          dailyExpenseIndex++;
-        } else {
-          // other expense
-          RegExp regExpExpenseItem = RegExp(r"[\D]+[\d\+]+");
-          regExpExpenseItem.allMatches(lineContent).forEach((match) {
-            String expenseItem = lineContent.substring(match.start, match.end);
-            int expenseValueIndex = expenseItem.indexOf(RegExp(r"\d"));
-            String expenseName = expenseItem.substring(0, expenseValueIndex);
-            String expenseValue = expenseItem.substring(expenseValueIndex);
-            if (expenseName.trim().isEmpty) {
-              expenseName = "空格";
-            }
-            print("allMatches() expenseName:$expenseName, expenseValue=$expenseValue");
-            excel.updateCell(testImportSheet, CellIndex.indexByColumnRow(columnIndex: dailyExpenseIndex + 2, rowIndex: sheetCurRow), expenseName + expenseValue);
-            dailyExpenseIndex++;
-          });
-        }
-      }
-    });
-
-    // save to excel file
-    var file = "/sdcard/yl/testFlutter/testImportExcel.xlsx";
-    excel.setDefaultSheet(testImportSheet);
-    excel.encode().then((value) {
-      File(file)
-        ..createSync(recursive: true)
-        ..writeAsBytesSync(value);
-    });
-  }
-
-  void testShowDialog() {
-    autoValidateAddExpenseType = false;
-    showDialog(
-      context: buildContext,
-      child: AlertDialog(
-        title: Text("Add Expense Type"),
-        content:Container(
-          width: 1000,
-          height: 100,
-          child: Form(
-            key: addExpenseTypeKey,
-            autovalidate: autoValidateAddExpenseType,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: <Widget>[
-                TextFormField(
-                  decoration: InputDecoration(
-                    labelText: "expense type",
-                    hintText: "some common expense name",
-//                    helperText: "helper text 1",
-//                        icon: const Icon(Icons.person),
-                  ),
-                  validator: (value) {
-                    print("validator1() entry");
-                    if (value.isEmpty) {
-                      return "expense type name can't  be empty";
-                    } else {
-                      return null;
-                    }
-                  },
-                ),
-
-//                TextFormField(
-//                  decoration: InputDecoration(
-//                    labelText: "labe text 2",
-//                    hintText: "hint text 2",
-//                    helperText: "helper text 2",
-////                        icon: const Icon(Icons.person),
-//                  ),
-//                  validator: (value) {
-//                    print("validator2() entry");
-//                    if (value.isEmpty) {
-//                      return "error 2";
-//                    } else {
-//                      return null;
-//                    }
-//                  },
-//                ),
-
-              ],
-            ),
-          ),
-        ),
-        actions: <Widget>[
-          FlatButton(child: Text("Cancel"), onPressed: onCancelAddExpenseType,),
-          FlatButton(child: Text("Add"), onPressed: onAddExpenseType,),
-        ],
-      )
-    );
-  }
-
-  void onAddExpenseType() {
-    if (addExpenseTypeKey.currentState.validate()) {
-      print("all input ok");
-    } else {
-      print("not all input ok");
-      autoValidateAddExpenseType = true;
-    }
-  }
-
-  void onCancelAddExpenseType() {
-    Navigator.pop(buildContext, true);
-  }
-}
-
-class BottomPage1 extends StatefulWidget{
-
-  @override
-  State createState() {
-    return BottomPage1State();
-  }
-}
-class BottomPage1State extends State<BottomPage1> {
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Text("Buttom Page 1", style: TextStyle(fontSize: 30),),
-      ),
-//      floatingActionButton: FloatingActionButton(
-//        onPressed: null,
-//        child: Icon(Icons.add),
-//      ),
-//      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-    );
-  }
-}
-
-class BottomPage2 extends StatefulWidget{
-
-  @override
-  State createState() {
-    return BottomPage2State();
-  }
-}
-class BottomPage2State extends State<BottomPage2> {
-  List topTabStrings = ["feature1", "feature2", "feature3"];
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: DefaultTabController(
-        length: topTabStrings.length,
-        child: Container(
-          child: Column(
-            children: <Widget>[
-              Container(
-//                color: Colors.redAccent,
-                height: 50,
-//              padding: EdgeInsets.all(10),
-                child: TabBar(
-                  tabs:topTabStrings.map((e) {
-                    return Text(e, style: TextStyle(fontSize: 15));
-                  }).toList(),
-                  indicatorColor: Colors.blue,
-                  labelColor: Colors.blue,
-                ),
-              ),
-              Expanded(
-                child: TabBarView(
-                  children: topTabStrings.map((e) {
-                    return Center(child: Text(e, style: TextStyle(fontSize: 50),),);
-                  }).toList()
-                ),
-              )
-            ],
-          ),
-        )
-      ),
-    );
-  }
-}

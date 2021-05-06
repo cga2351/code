@@ -1,0 +1,11 @@
+00000010
+{"date":"2021.03.22","type":"早饭","amount":1,"comment":""}
+{"date":"2020.01.11","type":"午饭","amount":2,"comment":""}
+{"date":"2021.02.12","type":"零食、水果","amount":3,"comment":""}
+{"date":"2021.01.22","type":"日常消费","amount":329,"comment":"电热水瓶329"}
+{"date":"2020.01.11","type":"晚饭","amount":5,"comment":""}
+{"date":"2020.02.01","type":"零食、水果","amount":8,"comment":"桃子8"}
+{"date":"2021.02.30","type":"零食、水果","amount":6,"comment":""}
+{"date":"2021.03.19","type":"零食、水果","amount":7,"comment":""}
+{"date":"2020.02.01","type":"零食、水果","amount":10,"comment":"香蕉10"}
+{"date":"2021.01.22","type":"日常消费","amount":100,"comment":"手机充值100"}

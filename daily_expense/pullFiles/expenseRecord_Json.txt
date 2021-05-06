@@ -1,0 +1,73 @@
+[{
+	"id": 1,
+	"date": "2021.04.08",
+	"type": "早饭",
+	"amount": 22,
+	"comment": ""
+}, {
+	"id": 2,
+	"date": "2021.04.08",
+	"type": "午饭",
+	"amount": 33,
+	"comment": ""
+}, {
+	"id": 3,
+	"date": "2021.04.08",
+	"type": "晚饭",
+	"amount": 55,
+	"comment": ""
+}, {
+	"id": 4,
+	"date": "2021.04.08",
+	"type": "日常消费",
+	"amount": 66,
+	"comment": ""
+}, {
+	"id": 5,
+	"date": "2021.04.08",
+	"type": "日常用品",
+	"amount": 69,
+	"comment": ""
+}, {
+	"id": 6,
+	"date": "2021.04.08",
+	"type": "医药费用",
+	"amount": 23,
+	"comment": ""
+}, {
+	"id": 7,
+	"date": "2021.04.08",
+	"type": "日常消费",
+	"amount": 99,
+	"comment": ""
+}, {
+	"id": 8,
+	"date": "2021.04.08",
+	"type": "过路费",
+	"amount": 23,
+	"comment": ""
+}, {
+	"id": 9,
+	"date": "2021.04.08",
+	"type": "停车费",
+	"amount": 66,
+	"comment": ""
+}, {
+	"id": 10,
+	"date": "2021.04.08",
+	"type": "买衣服",
+	"amount": 200,
+	"comment": ""
+}, {
+	"id": 11,
+	"date": "2021.04.08",
+	"type": "晚饭",
+	"amount": 60,
+	"comment": "KFC"
+}, {
+	"id": 12,
+	"date": "2021.04.08",
+	"type": "早饭",
+	"amount": 3,
+	"comment": ""
+}]

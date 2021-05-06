@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "477695830168",
+    "project_id": "testfirebase-327a3",
+    "storage_bucket": "testfirebase-327a3.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:477695830168:android:b6accacdd7c1e4ab8808ed",
+        "android_client_info": {
+          "package_name": "com.cga2351.dailyexpense"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "477695830168-cv5i6crt79kj9bcbpd1fcbnsrq84d936.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDn0wnSitcHLwEA-qoAJ0SDfyGlYa2P9is"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "477695830168-cv5i6crt79kj9bcbpd1fcbnsrq84d936.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
